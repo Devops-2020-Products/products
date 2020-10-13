@@ -14,7 +14,7 @@ Then all you have to do is clone this repo and invoke vagrant:
 
 ```bash
     git clone https://github.com/Devops-2020-Products/products
-    cd lab-flask-rest
+    cd products
     vagrant up
     vagrant ssh
     cd /vagrant
