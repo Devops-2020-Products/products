@@ -13,7 +13,7 @@ Download [Vagrant](https://www.vagrantup.com/)
 Then all you have to do is clone this repo and invoke vagrant:
 
 ```bash
-    git clone https://github.com/nyu-devops/lab-flask-rest.git
+    git clone https://github.com/Devops-2020-Products/products
     cd lab-flask-rest
     vagrant up
     vagrant ssh
