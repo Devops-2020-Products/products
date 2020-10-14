@@ -10,7 +10,7 @@ Download [VirtualBox](https://www.virtualbox.org/)
 
 Download [Vagrant](https://www.vagrantup.com/)
 
-Then all you have to do is clone this repo and invoke vagrant:
+Then all you have to do is clone this repo and invoke vagrant to start the base flask app:
 
 ```bash
     git clone https://github.com/Devops-2020-Products/products
@@ -18,8 +18,23 @@ Then all you have to do is clone this repo and invoke vagrant:
     vagrant up
     vagrant ssh
     cd /vagrant
+    flask run 
 ```
 
+The flask app should now be runing, enter the address in a browser to access.
+
+## Structure of the repo
+
+The flask base service is in the ```service``` directory and its tests are in the  ```tests``` directory 
+
+```
+├── service
+│   ├── models.py
+│   └── service.py
+├── tests
+│   ├── test_models.py
+│   └── test_service.py
+```
 
 ## Vagrant shutdown
 
