@@ -16,26 +16,37 @@ class DataValidationError(Exception):
     pass
 
 
-class YourResourceModel(db.Model):
+class Product(db.Model):
     """
     Class that represents a <your resource model name>
     """
 
     app = None
 
+    ##################################################
     # Table Schema
+    ##################################################
+
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(63))
+    name = db.Column(db.String(63),nullable = False)
+    description = db.Column(db.String(256),nullable = False)
+    category = db.Column(db.String(63),nullable = False)
+    price = db.Column(db.Float,nullable = False)
+
+    ##################################################
+    # INSTANCE METHODS
+    ##################################################
 
     def __repr__(self):
-        return "<<your resource name> %r id=[%s]>" % (self.name, self.id)
+        return "<<Product> %r id=[%s] %r %r %f >" % (self.name, self.id, self.description, self.category, self.price)
 
     def create(self):
         """
-        Creates a <your resource name> to the database
+        Creates a Product to the database
         """
         logger.info("Creating %s", self.name)
         self.id = None  # id must be none to generate next primary key
+        
         db.session.add(self)
         db.session.commit()
 
@@ -48,7 +59,7 @@ class YourResourceModel(db.Model):
 
     def delete(self):
         """ Removes a <your resource name> from the data store """
-        logger.info("Deleting %s", self.name)
+        logger.info("Deleting %r", self.name)
         db.session.delete(self)
         db.session.commit()
 
@@ -56,7 +67,10 @@ class YourResourceModel(db.Model):
         """ Serializes a <your resource name> into a dictionary """
         return {
             "id": self.id,
-            "name": self.name
+            "name": self.name,
+            "description" : self.description,
+            "category": self.category,
+            "price": self.price
         }
 
     def deserialize(self, data):
@@ -68,11 +82,15 @@ class YourResourceModel(db.Model):
         """
         try:
             self.name = data["name"]
+            self.description = data["description"]
+            self.category = data["category"]
+            self.price = data["price"]
+
         except KeyError as error:
-            raise DataValidationError("Invalid <your resource name>: missing " + error.args[0])
+            raise DataValidationError("Invalid product : missing " + error.args[0])
         except TypeError as error:
             raise DataValidationError(
-                "Invalid <your resource name>: body of request contained" "bad or no data"
+                "Invalid product: body of request contained bad or no data"
             )
         return self
 
@@ -88,28 +106,38 @@ class YourResourceModel(db.Model):
 
     @classmethod
     def all(cls):
-        """ Returns all of the <your resource name>s in the database """
+        """ Returns all of the products in the database """
         logger.info("Processing all <your resource name>s")
         return cls.query.all()
 
     @classmethod
     def find(cls, by_id):
-        """ Finds a <your resource name> by it's ID """
+        """ Finds a product by it's ID """
         logger.info("Processing lookup for id %s ...", by_id)
         return cls.query.get(by_id)
 
     @classmethod
     def find_or_404(cls, by_id):
-        """ Find a <your resource name> by it's id """
+        """ Find a product by it's id """
         logger.info("Processing lookup or 404 for id %s ...", by_id)
         return cls.query.get_or_404(by_id)
 
     @classmethod
     def find_by_name(cls, name):
-        """ Returns all <your resource name>s with the given name
+        """ Returns all products with the given name
 
         Args:
-            name (string): the name of the <your resource name>s you want to match
+            name (string): the name of the productss you want to match
         """
         logger.info("Processing name query for %s ...", name)
         return cls.query.filter(cls.name == name)
+
+    @classmethod
+    def find_by_category(cls, category):
+        """ Returns all products with the given category
+
+        Args:
+            category (string): the category of the products you want to match
+        """
+        logger.info("Processing category query for %s ...", category)
+        return cls.query.filter(cls.category == category)
