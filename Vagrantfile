@@ -9,7 +9,7 @@ Vagrant.configure(2) do |config|
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
   config.vm.box = "ubuntu/bionic64"
-  config.vm.hostname = "flask"
+  config.vm.hostname = "project"
 
   # accessing "localhost:8080" will access port 80 on the guest machine.
   # config.vm.network "forwarded_port", guest: 80, host: 8080
@@ -22,7 +22,7 @@ Vagrant.configure(2) do |config|
   # Mac users can comment this next line out but
   # Windows users need to change the permission of files and directories
   # so that nosetests runs without extra arguments.
-  config.vm.synced_folder ".", "/vagrant", mount_options: ["dmode=755,fmode=644"]
+  config.vm.synced_folder ".", "/vagrant", mount_options: ["dmode=775,fmode=664"]
 
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
@@ -30,8 +30,8 @@ Vagrant.configure(2) do |config|
   #
   config.vm.provider "virtualbox" do |vb|
     # Customize the amount of memory on the VM:
-    vb.memory = "512"
-    vb.cpus = 1
+    vb.memory = "1024"
+    vb.cpus = 2
     # Fixes some DNS issues on some networks
     vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
     vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
@@ -61,23 +61,27 @@ Vagrant.configure(2) do |config|
   # documentation for more information about their specific syntax and use.
   config.vm.provision "shell", inline: <<-SHELL
     apt-get update
-    apt-get install -y git zip tree python3 python3-pip python3-venv
+    apt-get install -y git python3 python3-pip python3-venv
     apt-get -y autoremove
+
     # Create a Python3 Virtual Environment and Activate it in .profile
     sudo -H -u vagrant sh -c 'python3 -m venv ~/venv'
     sudo -H -u vagrant sh -c 'echo ". ~/venv/bin/activate" >> ~/.profile'
-    # Install app dependencies as vagrant user
     sudo -H -u vagrant sh -c '. ~/venv/bin/activate && cd /vagrant && pip install -r requirements.txt'
+
+    # Install app dependencies
+    # cd /vagrant
+    # pip3 install -r requirements.txt
   SHELL
 
-  # ######################################################################
-  # # Add PostgreSQL docker container
-  # ######################################################################
-  # # docker run -d --name postgres -p 5432:5432 -v psql_data:/var/lib/postgresql/data postgres
-  # config.vm.provision :docker do |d|
-  #   d.pull_images "postgres:alpine"
-  #   d.run "postgres:alpine",
-  #      args: "-d --name postgres -p 5432:5432 -v psql_data:/var/lib/postgresql/data -e POSTGRES_PASSWORD=postgres"
-  # end
+  ######################################################################
+  # Add PostgreSQL docker container
+  ######################################################################
+  # docker run -d --name postgres -p 5432:5432 -v psql_data:/var/lib/postgresql/data postgres
+  config.vm.provision :docker do |d|
+    d.pull_images "postgres:alpine"
+    d.run "postgres:alpine",
+       args: "-d --name postgres -p 5432:5432 -v psql_data:/var/lib/postgresql/data -e POSTGRES_PASSWORD=postgres"
+  end
 
 end
