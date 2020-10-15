@@ -45,26 +45,26 @@ class Product(db.Model):
         Creates a Product to the database
         """
         logger.info("Creating %s", self.name)
-        self.id = None  # id must be none to generate next primary key
-        
+        self.id = None
         db.session.add(self)
         db.session.commit()
 
-    def save(self):
+    def update(self):
         """
-        Updates a <your resource name> to the database
+        Updates a Product to the database
         """
-        logger.info("Saving %s", self.name)
+        if not self.id:
+            raise DataValidationError("Update called with empty ID field")
         db.session.commit()
 
     def delete(self):
-        """ Removes a <your resource name> from the data store """
+        """ Removes a Product from the data store """
         logger.info("Deleting %r", self.name)
         db.session.delete(self)
         db.session.commit()
 
     def serialize(self):
-        """ Serializes a <your resource name> into a dictionary """
+        """ Serializes a Product into a dictionary """
         return {
             "id": self.id,
             "name": self.name,
@@ -75,7 +75,7 @@ class Product(db.Model):
 
     def deserialize(self, data):
         """
-        Deserializes a <your resource name> from a dictionary
+        Deserializes a Product from a dictionary
 
         Args:
             data (dict): A dictionary containing the resource data
