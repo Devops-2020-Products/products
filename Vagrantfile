@@ -61,7 +61,8 @@ Vagrant.configure(2) do |config|
   # documentation for more information about their specific syntax and use.
   config.vm.provision "shell", inline: <<-SHELL
     apt-get update
-    apt-get install -y git python3 python3-pip python3-venv
+    apt-get install -y git tree wget python3-dev python3-pip python3-venv apt-transport-https
+    apt-get upgrade python3
     apt-get -y autoremove
 
     # Create a Python3 Virtual Environment and Activate it in .profile

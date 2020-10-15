@@ -1,5 +1,5 @@
 """
-<your resource name> API Service Test Suite
+Product API Service Test Suite
 
 Test cases can be run with the following:
   nosetests -v --with-spec --spec-color
@@ -16,7 +16,7 @@ from service.service import app, init_db
 ######################################################################
 #  T E S T   C A S E S
 ######################################################################
-class TestYourResourceServer(TestCase):
+class TestProductServer(TestCase):
     """ REST API Server Tests """
 
     @classmethod
