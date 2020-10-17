@@ -48,6 +48,12 @@ class Product(db.Model):
         db.session.add(self)
         db.session.commit()
 
+    def delete(self):
+        """ Removes a Product from the data store """
+        self.logger.info("Deleting %r", self.name)
+        db.session.delete(self)
+        db.session.commit() 
+
     def serialize(self):
         """ Serializes a Product into a dictionary """
         return {
