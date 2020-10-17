@@ -77,6 +77,19 @@ class TestProductModel(unittest.TestCase):
         data = "this is not a dictionary"
         product = Product()
         self.assertRaises(DataValidationError, product.deserialize, data)
+        
+    def test_add_a_product(self):
+        """ Create a product and add it to the database """
+        products = Product.all()
+        self.assertEqual(products, [])
+        product = Product(name="Cake", description="Chocolate Cake", category="Food", price=10.50)
+        self.assertTrue(product != None)
+        self.assertEqual(product.id, None)
+        product.create()
+        # Asert that it was assigned an id and shows up in the database
+        self.assertEqual(product.id, 1)
+        products = Product.all()
+        self.assertEqual(len(products), 1)
 
 
 ######################################################################

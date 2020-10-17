@@ -38,7 +38,15 @@ class Product(db.Model):
 
     def __repr__(self):
         return "<<Product> %r id=[%s] %r %r %f >" % (self.name, self.id, self.description, self.category, self.price)
-
+    
+    def create(self):
+        """
+        Creates a Product to the data store
+        """
+        self.logger.info("Creating %s", self.name)
+        self.id = None
+        db.session.add(self)
+        db.session.commit()
 
     def serialize(self):
         """ Serializes a Product into a dictionary """
@@ -80,3 +88,9 @@ class Product(db.Model):
         db.init_app(app)
         app.app_context().push()
         db.create_all()  # make our sqlalchemy tables
+    
+    @classmethod
+    def all(cls):
+        """ Returns all of the Products in the database """
+        cls.logger.info("Processing all Products")
+        return cls.query.all()
