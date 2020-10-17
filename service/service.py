@@ -9,6 +9,7 @@ import sys
 import logging
 from flask import Flask, jsonify, request, url_for, make_response, abort
 from flask_api import status  # HTTP Status Codes
+from werkzeug.exceptions import NotFound
 
 # For this example we'll use SQLAlchemy, a popular ORM that supports a
 # variety of backends including SQLite, MySQL, and PostgreSQL
@@ -21,6 +22,19 @@ from . import app
 ######################################################################
 # Error Handlers
 ######################################################################
+
+@app.errorhandler(status.HTTP_404_NOT_FOUND)
+def not_found(error):
+    """ Handles resources not found with 404_NOT_FOUND """
+    message = str(error)
+    app.logger.warning(message)
+    return (
+        jsonify(
+            status=status.HTTP_404_NOT_FOUND, error="Not Found", message=message
+        ),
+        status.HTTP_404_NOT_FOUND,
+    )
+
 
 @app.errorhandler(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 def mediatype_not_supported(error):
@@ -69,6 +83,23 @@ def create_products():
 
     #TODO: return location url
     #return make_response(jsonify(message), status.HTTP_201_CREATED, {"Location": location_url})
+
+######################################################################
+# READ A PRODUCT
+######################################################################
+@app.route("/products/<int:product_id>", methods=["GET"])
+def get_products(product_id):
+    """
+    Read a product
+    This endpoint will return a product based on its id
+    """
+    app.logger.info("Request for product with id: %s", product_id)
+    product = Product.find(product_id)
+    if not product:
+        raise NotFound("Product with id '{}' was not found.".format(product_id))
+
+    app.logger.info("Returning product: %s", product.name)
+    return make_response(jsonify(product.serialize()), status.HTTP_200_OK)
 
 
 ######################################################################

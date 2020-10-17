@@ -91,6 +91,18 @@ class TestProductModel(unittest.TestCase):
         products = Product.all()
         self.assertEqual(len(products), 1)
 
+    def test_find_product(self):
+        """ Find a Product by ID """
+        Product(name="iPhone X",description="Black iPhone",category= "Technology", price = 999.99).create()
+        tv = Product(name="TV", description="Black Sony TV",category="Technology", price= 1999.99)
+        tv.create()
+        product = Product.find(tv.id)
+        self.assertIsNot(product, None)
+        self.assertEqual(product.id, tv.id)
+        self.assertEqual(product.name, "TV")
+        self.assertEqual(product.description, "Black Sony TV")
+        self.assertEqual(product.category,"Technology")
+        self.assertEqual(product.price, 1999.99)
 
 ######################################################################
 #   M A I N

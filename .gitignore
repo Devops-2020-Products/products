@@ -144,3 +144,6 @@ cython_debug/
 # mac hidden files 
 .DS_Store
 
+# Test reports
+unittests.xml
+
