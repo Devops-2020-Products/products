@@ -91,15 +91,11 @@ def create_products():
     product.create()
     message = product.serialize()
 
-    #TODO: get location url
-    # location_url = url_for("get_products", product_id=product.id, _external=True)
+    location_url = url_for("get_products", product_id=product.id, _external=True)
 
     app.logger.info("Product with ID [%s] created.", product.id)
-    return make_response(
-        jsonify(message), status.HTTP_201_CREATED)
 
-    #TODO: return location url
-    #return make_response(jsonify(message), status.HTTP_201_CREATED, {"Location": location_url})
+    return make_response(jsonify(message), status.HTTP_201_CREATED, {"Location": location_url})
 
 ######################################################################
 # READ A PRODUCT
