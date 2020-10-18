@@ -76,6 +76,19 @@ def index():
     return "Welcome to the flask service for the Products team", status.HTTP_200_OK
 
 ######################################################################
+# LIST ALL PETS
+######################################################################
+@app.route("/products", methods=["GET"])
+def list_products():
+    """ Returns all of the Products """
+    app.logger.info("Request for product list")
+    products = []
+    products = Product.all()
+    results = [product.serialize() for product in products]
+    app.logger.info("Returning %d products", len(results))
+    return make_response(jsonify(results), status.HTTP_200_OK)
+
+######################################################################
 # ADD A NEW PRODUCT
 ######################################################################
 @app.route("/products", methods=["POST"])
