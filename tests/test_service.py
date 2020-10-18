@@ -74,9 +74,8 @@ class TestProductServer(TestCase):
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
 
-        #TODO: Make sure location header is set
-        # location = resp.headers.get("Location", None)
-        # self.assertIsNotNone(location)
+        location = resp.headers.get("Location", None)
+        self.assertIsNotNone(location)
 
         # Check the data is correct
         new_product = resp.get_json()
@@ -91,20 +90,19 @@ class TestProductServer(TestCase):
             new_product["price"], test_product.price, "Prices do not match"
         )
 
-        #TODO: Check that the location header was correct
-        # resp = self.app.get(location, content_type="application/json")
-        # self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        # new_product = resp.get_json()
-        # self.assertEqual(new_product["name"], test_product.name, "Names do not match")
-        # self.assertEqual(
-        #     new_product["category"], test_product.category, "Categories do not match"
-        # )
-        # self.assertEqual(
-        #     new_product["description"], test_product.available, "Descriptions do not match"
-        # )
-        # self.assertEqual(
-        #     new_product["price"], test_product.available, "Prices do not match"
-        # )
+        resp = self.app.get(location, content_type="application/json")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        new_product = resp.get_json()
+        self.assertEqual(new_product["name"], test_product.name, "Names do not match")
+        self.assertEqual(
+         new_product["category"], test_product.category, "Categories do not match"
+        )
+        self.assertEqual(
+         new_product["description"], test_product.description, "Descriptions do not match"
+        )
+        self.assertEqual(
+         new_product["price"], test_product.price, "Prices do not match"
+        )
 
     def test_create_product_with_invalid_content_type(self):
         """ Create a new Product with invalid content type"""
