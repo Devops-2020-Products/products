@@ -48,6 +48,16 @@ class Product(db.Model):
         db.session.add(self)
         db.session.commit()
 
+    def update(self):
+        """
+        Updates a Product to the data store
+        """
+        self.logger.info("Updating %s", self.name)
+        if not self.id:
+            self.logger.info("Update called with empty ID field")
+            raise DataValidationError("Update called with empty ID field")
+        db.session.commit()
+
     def delete(self):
         """ Removes a Product from the data store """
         self.logger.info("Deleting %r", self.name)

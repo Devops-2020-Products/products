@@ -144,3 +144,53 @@ class TestProductServer(TestCase):
             "/products/{}".format(test_product.id), content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND) 
+
+    def test_update_product(self):
+        """ Update an existing Product """
+        # create a product to update
+        test_product = ProductFactory()
+        resp = self.app.post(
+            "/products", json=test_product.serialize(), content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        # update the product
+        new_product = resp.get_json()
+        new_product["category"] = "Education"
+        resp = self.app.put(
+            "/products/{}".format(new_product["id"]),
+            json=new_product,
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        updated_product = resp.get_json()
+        self.assertEqual(updated_product["category"], "Education")
+
+    def test_update_product_not_found(self):
+        """ Update a product that's not found """
+        test_product = ProductFactory()
+        resp = self.app.put(
+            "/products/0",
+            json=test_product.serialize(),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_update_product_bad_request(self):
+        """ Update a product with bad request body """
+        # create a product to update
+        test_product = ProductFactory()
+        resp = self.app.post(
+            "/products", json=test_product.serialize(), content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        # create an update request with bad request body
+        new_product = resp.get_json()
+        new_product.pop("name")
+        resp = self.app.put(
+            "/products/{}".format(new_product["id"]),
+            json=new_product,
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)

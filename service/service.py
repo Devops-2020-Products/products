@@ -23,6 +23,23 @@ from . import app
 # Error Handlers
 ######################################################################
 
+@app.errorhandler(DataValidationError)
+def request_validation_error(error):
+    """ Handles Value Errors from bad data """
+    return bad_request(error)
+
+@app.errorhandler(status.HTTP_400_BAD_REQUEST)
+def bad_request(error):
+    """ Handles bad reuests with 400_BAD_REQUEST """
+    message = str(error)
+    app.logger.warning(message)
+    return (
+        jsonify(
+            status=status.HTTP_400_BAD_REQUEST, error="Bad Request", message=message
+        ),
+        status.HTTP_400_BAD_REQUEST,
+    )
+
 @app.errorhandler(status.HTTP_404_NOT_FOUND)
 def not_found(error):
     """ Handles resources not found with 404_NOT_FOUND """
@@ -110,7 +127,7 @@ def get_products(product_id):
 def delete_products(product_id):
     """
     Delete a Product
-    This endpoint will delete a Pet based the id specified in the path
+    This endpoint will delete a product based the id specified in the path
     """
     app.logger.info("Request to delete product with id: %s", product_id)
     product = Product.find(product_id)
@@ -119,6 +136,27 @@ def delete_products(product_id):
 
     app.logger.info("Product with ID [%s] delete complete.", product_id)
     return make_response("", status.HTTP_204_NO_CONTENT)
+
+######################################################################
+# UPDATE AN EXISTING PRODUCT
+######################################################################
+@app.route("/products/<int:product_id>", methods=["PUT"])
+def update_products(product_id):
+    """
+    Update a product
+    This endpoint will update a product based on the request body
+    """
+    app.logger.info("Request to update product with id: %s", product_id)
+    check_content_type("application/json")
+    product = Product.find(product_id)
+    if not product:
+        raise NotFound("Product with id '{}' was not found.".format(product_id))
+    product.deserialize(request.get_json())
+    product.id = product_id
+    product.update()
+
+    app.logger.info("Product with ID [%s] updated.", product.id)
+    return make_response(jsonify(product.serialize()), status.HTTP_200_OK)
 
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S

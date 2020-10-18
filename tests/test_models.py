@@ -91,6 +91,32 @@ class TestProductModel(unittest.TestCase):
         products = Product.all()
         self.assertEqual(len(products), 1)
 
+    def test_update_a_product(self):
+        """ Update a Product """
+        product = Product(name="iPhone X",description="Black iPhone",category= "Technology", price = 999.99)
+        product.create()
+        self.assertEqual(product.id, 1)
+        # Change it and update it
+        product.price = 9999.99
+        product.description = "White iPhone"
+        product.update()
+        self.assertEqual(product.id, 1)
+        # Fetch it back and make sure the id hasn't changed
+        # but the data did change
+        products = Product.all()
+        self.assertEqual(len(products), 1)
+        self.assertEqual(products[0].price, 9999.99)
+        self.assertEqual(products[0].description, "White iPhone")
+
+    def test_update_a_product_empty_id(self):
+        """ Update a Product with empty id """
+        product = Product(name="iPhone X",description="Black iPhone",category= "Technology", price = 999.99)
+        product.create()
+        self.assertEqual(product.id, 1)
+        # Change it and update it
+        product.id = None
+        self.assertRaises(DataValidationError, product.update)
+
     def test_find_product(self):
         """ Find a Product by ID """
         Product(name="iPhone X",description="Black iPhone",category= "Technology", price = 999.99).create()
@@ -109,7 +135,7 @@ class TestProductModel(unittest.TestCase):
         product = Product(name="iPhone X",description="Black iPhone",category= "Technology", price = 999.99)
         product.create()
         self.assertEqual(len(Product.all()), 1)
-        # delete the pet and make sure it isn't in the database
+        # delete the product and make sure it isn't in the database
         product.delete()
         self.assertEqual(len(Product.all()), 0)
 
