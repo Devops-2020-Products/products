@@ -104,6 +104,15 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(product.category,"Technology")
         self.assertEqual(product.price, 1999.99)
 
+    def test_delete_a_product(self):
+        """ Delete a Product """
+        product = Product(name="iPhone X",description="Black iPhone",category= "Technology", price = 999.99)
+        product.create()
+        self.assertEqual(len(Product.all()), 1)
+        # delete the pet and make sure it isn't in the database
+        product.delete()
+        self.assertEqual(len(Product.all()), 0)
+
 ######################################################################
 #   M A I N
 ######################################################################

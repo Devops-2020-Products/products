@@ -130,3 +130,17 @@ class TestProductServer(TestCase):
         """ Get a product that's not found """
         resp = self.app.get("/products/0")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_a_product(self):
+        """ Delete a Product """
+        test_product = self._create_products(1)[0]
+        resp = self.app.delete(
+            "/products/{}".format(test_product.id), content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(len(resp.data), 0)
+        # make sure they are deleted
+        resp = self.app.get(
+            "/products/{}".format(test_product.id), content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND) 
