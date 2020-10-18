@@ -121,3 +121,41 @@ class Product(db.Model):
         """
         cls.logger.info("Processing lookup for id %s ...", product_id)
         return cls.query.get(product_id)
+
+    @classmethod
+    def find_by_name(cls, name: str):
+        """Returns all Products with the given name
+        :param name: the name of the Products you want to match
+        :type name: str
+        :return: a collection of Products with that name
+        :rtype: list
+        """
+        cls.logger.info("Processing name query for %s ...", name)
+        return cls.query.filter(cls.name == name)
+
+    @classmethod
+    def find_by_category(cls, category: str):
+        """Returns all of the Products in a category
+        :param category: the category of the Products you want to match
+        :type category: str
+        :return: a collection of Products in that category
+        :rtype: list
+        """
+        cls.logger.info("Processing category query for %s ...", category)
+        return cls.query.filter(cls.category == category)
+
+    @classmethod
+    def find_by_description(cls, description: str):
+        """Returns all of the Products match the description
+        :param description: the description of the Products you want to match
+        :type description: str
+        :return: a collection of Products match the description
+        :rtype: list
+        """
+        cls.logger.info("Processing description query for %s ...", description)
+        return cls.query.filter(cls.description == description)
+    
+    @classmethod
+    def query_by_price(cls, minimum: float, maximum: float):
+        Product.logger.info("Searching for all products within the price range of minimum to maximum")
+        return Product.query.filter((Product.price.between(minimum, maximum)))

@@ -130,6 +130,46 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(product.category,"Technology")
         self.assertEqual(product.price, 1999.99)
 
+    def test_find_by_category(self):
+        """ Find Products by Category """
+        Product(name="iPhone X",description="Black iPhone",category= "Technology", price = 9999.99).create()
+        Product(name="Cake", description="Chocolate Cake", category="Food", price=10.50).create()
+        products = Product.find_by_category("Technology")
+        self.assertEqual(products[0].category, "Technology")
+        self.assertEqual(products[0].name, "iPhone X")
+        self.assertEqual(products[0].description, "Black iPhone")
+        self.assertEqual(products[0].price, 9999.99)
+
+    def test_find_by_name(self):
+        """ Find Products by Name """
+        Product(name="iPhone X",description="Black iPhone",category= "Technology", price = 9999.99).create()
+        Product(name="Cake", description="Chocolate Cake", category="Food", price=10.50).create()
+        products = Product.find_by_name("iPhone X")
+        self.assertEqual(products[0].category, "Technology")
+        self.assertEqual(products[0].name, "iPhone X")
+        self.assertEqual(products[0].description, "Black iPhone")
+        self.assertEqual(products[0].price, 9999.99)
+    
+    def test_find_by_description(self):
+        """ Find Products by Description """
+        Product(name="iPhone X",description="Black iPhone",category= "Technology", price = 9999.99).create()
+        Product(name="Cake", description="Chocolate Cake", category="Food", price=10.50).create()
+        products = Product.find_by_description("Black iPhone")
+        self.assertEqual(products[0].category, "Technology")
+        self.assertEqual(products[0].name, "iPhone X")
+        self.assertEqual(products[0].description, "Black iPhone")
+        self.assertEqual(products[0].price, 9999.99)
+    
+    def test_search_by_price(self):
+        """ Find Products by Price """
+        Product(name="iPhone X",description="Black iPhone",category= "Technology", price = 9999.99).create()
+        Product(name="Cake", description="Chocolate Cake", category="Food", price=10.50).create()
+        products = Product.query_by_price(800, 10000)
+        self.assertEqual(products[0].category, "Technology")
+        self.assertEqual(products[0].name, "iPhone X")
+        self.assertEqual(products[0].description, "Black iPhone")
+        self.assertEqual(products[0].price, 9999.99)
+
     def test_delete_a_product(self):
         """ Delete a Product """
         product = Product(name="iPhone X",description="Black iPhone",category= "Technology", price = 999.99)

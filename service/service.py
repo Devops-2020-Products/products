@@ -83,7 +83,40 @@ def list_products():
     """ Returns all of the Products """
     app.logger.info("Request for product list")
     products = []
-    products = Product.all()
+    
+    category = request.args.get("category")
+    name = request.args.get("name")
+    description = request.args.get("description")
+
+    if category:
+        products = Product.find_by_category(category)
+    elif name:
+        products = Product.find_by_name(name)
+    elif description:
+            products = Product.find_by_description(description)
+    else:
+        products = Product.all()
+    
+    results = [product.serialize() for product in products]
+    app.logger.info("Returning %d products", len(results))
+    return make_response(jsonify(results), status.HTTP_200_OK)
+
+######################################################################
+# QUERY PRODUCTS BY PRICE RANGE
+######################################################################
+@app.route("/products/price", methods=["GET"])
+def query_product_by_price():
+    """ List all the product by their price range """
+    app.logger.info("Querying products by provided price range")
+    products = []
+
+    minimum = request.args.get('minimum')
+    maximum = request.args.get('maximum')
+    if maximum is None or minimum is None:
+        return request_validation_error("Minimum and Maximum cannot be empty")
+
+    products = Product.query_by_price(minimum, maximum)
+
     results = [product.serialize() for product in products]
     app.logger.info("Returning %d products", len(results))
     return make_response(jsonify(results), status.HTTP_200_OK)
