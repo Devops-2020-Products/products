@@ -33,12 +33,14 @@ class TestProductServer(TestCase):
     def setUp(self):
         """ This runs before each test """
         init_db()
+        db.drop_all()  # clean up the last tests
+        db.create_all()  # create new tables
         self.app = app.test_client()
-
 
     def tearDown(self):
         """ This runs after each test """
-        pass
+        db.session.remove()
+        db.drop_all()
 
     def _create_products(self, count):
         """ Factory method to create products in bulk """
@@ -192,3 +194,11 @@ class TestProductServer(TestCase):
             content_type="application/json",
         )
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+    
+    def test_get_product_list(self):
+        """ Get a list of Products """
+        self._create_products(5)
+        resp = self.app.get("/products")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), 5)
