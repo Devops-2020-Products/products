@@ -262,3 +262,13 @@ class TestProductServer(TestCase):
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST) 
         resp = self.app.get("/products/price", query_string="maximum={}".format(test_max_price))
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST) 
+    
+    def test_purchase_product(self):
+        '''Purchase a Product '''
+        product = self._create_products(1)
+        json = {"userid": 1, "shopcart_id":2,"amount": 4}
+        resp = self.app.post("/products/{}/purchase".format(product[0].id), json = json,content_type="application/json")
+        self.assertEqual(resp.status_code,status.HTTP_204_NO_CONTENT)
+        self.assertEqual(len(resp.data),0)
+    
+

@@ -201,6 +201,31 @@ def update_products(product_id):
     return make_response(jsonify(product.serialize()), status.HTTP_200_OK)
 
 ######################################################################
+# PURCHASE AN EXISTING PRODUCT
+######################################################################
+@app.route("/products/<int:product_id>/purchase", methods=["POST"])
+def purchase_products(product_id):
+    """
+    Purchase a product
+    This endpoint will purchase a product based on the request body which should include the amount, user id, and shopcart id
+    """
+    app.logger.info("Request to purchase product with id: %s", product_id)
+    check_content_type("application/json")
+    product = Product.find(product_id)
+    if not product:
+        raise NotFound("Product with id '{}' was not found.".format(product_id))
+    '''
+        first check if there is a shopcart item that has the same product id based on shopcart id 
+        if not, then call create to create the shopcart item, 
+        else call update to update the shopcart item with specified amount
+        check if API responds with 200. If response is 200 then return 200 
+        else find what the response is and deal with it correspondingly 
+    '''
+    return make_response("",status.HTTP_204_NO_CONTENT)
+
+
+
+######################################################################
 #  U T I L I T Y   F U N C T I O N S
 ######################################################################
 
