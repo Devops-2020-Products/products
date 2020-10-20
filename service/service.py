@@ -4,16 +4,16 @@ My Service
 Describe what your service does here
 """
 
-import os
-import sys
-import logging
+#import os
+#import sys
+#import logging
 from flask import Flask, jsonify, request, url_for, make_response, abort
 from flask_api import status  # HTTP Status Codes
 from werkzeug.exceptions import NotFound
 
 # For this example we'll use SQLAlchemy, a popular ORM that supports a
 # variety of backends including SQLite, MySQL, and PostgreSQL
-from flask_sqlalchemy import SQLAlchemy
+#from flask_sqlalchemy import SQLAlchemy
 from service.models import Product, DataValidationError
 
 # Import Flask application
@@ -93,7 +93,7 @@ def list_products():
     elif name:
         products = Product.find_by_name(name)
     elif description:
-            products = Product.find_by_description(description)
+        products = Product.find_by_description(description)
     else:
         products = Product.all()
     
@@ -221,7 +221,7 @@ def purchase_products(product_id):
         check if API responds with 200. If response is 200 then return 200 
         else find what the response is and deal with it correspondingly 
     '''
-    return make_response("",status.HTTP_204_NO_CONTENT)
+    return make_response("", status.HTTP_204_NO_CONTENT)
 
 
 

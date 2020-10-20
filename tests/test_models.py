@@ -2,7 +2,7 @@
 Test cases for product Model
 
 """
-import logging
+#import logging
 import unittest
 import os
 from service.models import Product, DataValidationError, db
@@ -40,13 +40,12 @@ class TestProductModel(unittest.TestCase):
         db.drop_all()
 
 ######################################################################
-#  P L A C E   T E S T   C A S E S   H E R E 
+#  P L A C E   T E S T   C A S E S   H E R E
 ######################################################################
-
 
     def test_serialize_a_product(self):
         """ Test serialization of a Product """
-        product = Product(name="iPhone X",description="Black iPhone",category= "Technology", price = 999.99)
+        product = Product(name="iPhone X", description="Black iPhone", category="Technology", price=999.99)
         data = product.serialize()
         self.assertNotEqual(data, None)
         self.assertIn("id", data)
@@ -54,7 +53,7 @@ class TestProductModel(unittest.TestCase):
         self.assertIn("name", data)
         self.assertEqual(data["name"], "iPhone X")
         self.assertIn("description", data)
-        self.assertEqual(data["description"],"Black iPhone")
+        self.assertEqual(data["description"], "Black iPhone")
         self.assertIn("category", data)
         self.assertEqual(data["category"], "Technology")
         self.assertIn("price", data)
@@ -62,7 +61,7 @@ class TestProductModel(unittest.TestCase):
 
     def test_deserialize_a_product(self):
         """ Test deserialization of a Product """
-        data = {"id": 1, "name": "iPhone X", "description": "Black iPhone","category": "Technology", "price": 999.99}
+        data = {"id": 1, "name": "iPhone X", "description": "Black iPhone", "category": "Technology", "price": 999.99}
         product = Product()
         product.deserialize(data)
         self.assertNotEqual(product, None)
@@ -83,7 +82,7 @@ class TestProductModel(unittest.TestCase):
         products = Product.all()
         self.assertEqual(products, [])
         product = Product(name="Cake", description="Chocolate Cake", category="Food", price=10.50)
-        self.assertTrue(product != None)
+        self.assertTrue(product is not None)
         self.assertEqual(product.id, None)
         product.create()
         # Asert that it was assigned an id and shows up in the database
@@ -93,7 +92,7 @@ class TestProductModel(unittest.TestCase):
 
     def test_update_a_product(self):
         """ Update a Product """
-        product = Product(name="iPhone X",description="Black iPhone",category= "Technology", price = 999.99)
+        product = Product(name="iPhone X", description="Black iPhone", category="Technology", price=999.99)
         product.create()
         self.assertEqual(product.id, 1)
         # Change it and update it
@@ -110,7 +109,7 @@ class TestProductModel(unittest.TestCase):
 
     def test_update_a_product_empty_id(self):
         """ Update a Product with empty id """
-        product = Product(name="iPhone X",description="Black iPhone",category= "Technology", price = 999.99)
+        product = Product(name="iPhone X", description="Black iPhone", category="Technology", price=999.99)
         product.create()
         self.assertEqual(product.id, 1)
         # Change it and update it
@@ -119,20 +118,20 @@ class TestProductModel(unittest.TestCase):
 
     def test_find_product(self):
         """ Find a Product by ID """
-        Product(name="iPhone X",description="Black iPhone",category= "Technology", price = 999.99).create()
-        tv = Product(name="TV", description="Black Sony TV",category="Technology", price= 1999.99)
+        Product(name="iPhone X", description="Black iPhone", category="Technology", price=999.99).create()
+        tv = Product(name="TV", description="Black Sony TV", category="Technology", price=1999.99)
         tv.create()
         product = Product.find(tv.id)
         self.assertIsNot(product, None)
         self.assertEqual(product.id, tv.id)
         self.assertEqual(product.name, "TV")
         self.assertEqual(product.description, "Black Sony TV")
-        self.assertEqual(product.category,"Technology")
+        self.assertEqual(product.category, "Technology")
         self.assertEqual(product.price, 1999.99)
 
     def test_find_by_category(self):
         """ Find Products by Category """
-        Product(name="iPhone X",description="Black iPhone",category= "Technology", price = 9999.99).create()
+        Product(name="iPhone X", description="Black iPhone", category="Technology", price=9999.99).create()
         Product(name="Cake", description="Chocolate Cake", category="Food", price=10.50).create()
         products = Product.find_by_category("Technology")
         self.assertEqual(products[0].category, "Technology")
@@ -142,7 +141,7 @@ class TestProductModel(unittest.TestCase):
 
     def test_find_by_name(self):
         """ Find Products by Name """
-        Product(name="iPhone X",description="Black iPhone",category= "Technology", price = 9999.99).create()
+        Product(name="iPhone X", description="Black iPhone", category="Technology", price=9999.99).create()
         Product(name="Cake", description="Chocolate Cake", category="Food", price=10.50).create()
         products = Product.find_by_name("iPhone X")
         self.assertEqual(products[0].category, "Technology")
@@ -152,7 +151,7 @@ class TestProductModel(unittest.TestCase):
     
     def test_find_by_description(self):
         """ Find Products by Description """
-        Product(name="iPhone X",description="Black iPhone",category= "Technology", price = 9999.99).create()
+        Product(name="iPhone X", description="Black iPhone", category="Technology", price=9999.99).create()
         Product(name="Cake", description="Chocolate Cake", category="Food", price=10.50).create()
         products = Product.find_by_description("Black iPhone")
         self.assertEqual(products[0].category, "Technology")
@@ -162,7 +161,7 @@ class TestProductModel(unittest.TestCase):
     
     def test_search_by_price(self):
         """ Find Products by Price """
-        Product(name="iPhone X",description="Black iPhone",category= "Technology", price = 9999.99).create()
+        Product(name="iPhone X", description="Black iPhone", category="Technology", price=9999.99).create()
         Product(name="Cake", description="Chocolate Cake", category="Food", price=10.50).create()
         products = Product.query_by_price(800, 10000)
         self.assertEqual(products[0].category, "Technology")
@@ -172,7 +171,7 @@ class TestProductModel(unittest.TestCase):
 
     def test_delete_a_product(self):
         """ Delete a Product """
-        product = Product(name="iPhone X",description="Black iPhone",category= "Technology", price = 999.99)
+        product = Product(name="iPhone X", description="Black iPhone", category="Technology", price=999.99)
         product.create()
         self.assertEqual(len(Product.all()), 1)
         # delete the product and make sure it isn't in the database
