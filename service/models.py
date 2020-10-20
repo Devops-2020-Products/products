@@ -27,10 +27,10 @@ class Product(db.Model):
     ##################################################
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(63),nullable = False)
-    description = db.Column(db.String(256),nullable = False)
-    category = db.Column(db.String(63),nullable = False)
-    price = db.Column(db.Float,nullable = False)
+    name = db.Column(db.String(63), nullable=False)
+    description = db.Column(db.String(256), nullable=False)
+    category = db.Column(db.String(63), nullable=False)
+    price = db.Column(db.Float, nullable=False)
 
     ##################################################
     # INSTANCE METHODS
@@ -38,7 +38,7 @@ class Product(db.Model):
 
     def __repr__(self):
         return "<<Product> %r id=[%s] %r %r %f >" % (self.name, self.id, self.description, self.category, self.price)
-    
+        
     def create(self):
         """
         Creates a Product to the data store
@@ -62,7 +62,7 @@ class Product(db.Model):
         """ Removes a Product from the data store """
         self.logger.info("Deleting %r", self.name)
         db.session.delete(self)
-        db.session.commit() 
+        db.session.commit()
 
     def serialize(self):
         """ Serializes a Product into a dictionary """
@@ -157,5 +157,11 @@ class Product(db.Model):
     
     @classmethod
     def query_by_price(cls, minimum: float, maximum: float):
+        """Returns all of the Products match the price in range from minimum to maximum
+        :param description: the minimum and maximum of the Products you want to match
+        :type description: two floats
+        :return: a collection of Products match the price range
+        :rtype: list
+        """
         Product.logger.info("Searching for all products within the price range of minimum to maximum")
         return Product.query.filter((Product.price.between(minimum, maximum)))
