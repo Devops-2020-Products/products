@@ -18,7 +18,7 @@ Then all you have to do is clone this repo and invoke vagrant to start the base 
     vagrant up
     vagrant ssh
     cd /vagrant
-    flask run 
+    FLASK_APP=service:app flask run -h 0.0.0.0
 ```
 
 The flask app should now be runing, enter the address in a browser to access.
