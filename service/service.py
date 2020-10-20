@@ -76,7 +76,7 @@ def index():
     return "Welcome to the flask service for the Products team", status.HTTP_200_OK
 
 ######################################################################
-# LIST ALL PETS
+# LIST ALL PRODUCTS
 ######################################################################
 @app.route("/products", methods=["GET"])
 def list_products():
