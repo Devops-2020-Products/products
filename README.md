@@ -35,7 +35,33 @@ The flask base service is in the ```service``` directory and its tests are in th
 │   ├── test_models.py
 │   └── test_service.py
 ```
+### Database  Fields
+| Fields | Type | Description
+| :--- | :--- | :--- |
+| id | Integer | ID (auto-incremented by database) 
+| name | String | Product Name
+| description | String | Product Description
+| category | String | Product Category
+| price | Float | Product Price
 
+## API Documentation
+### URLS
+
+ GET /products - Returns a list all of the products
+
+ GET /products/{id} - Returns the product with a given id
+
+ POST /products - creates a new product record in the database with the request body consisting of all the database fields needed
+
+ PUT /products/{id} - updates a product record in the database with the request body consisting of all the database fields needed
+
+ DELETE /products/{id} - deletes a product record in the database  
+
+ GET /products/price - query the database by the price range of products
+
+ POST /products/{id}/purchase - purchases the product with the corresponding id by adding it to user's shopping cart with the request body consisting of user_id, shopcart_id, and the amount you wish to purchase. 
+
+ 
 ## Vagrant shutdown
 
 When you are done, you should exit the virtual machine and shut down the vm with:
