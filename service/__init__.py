@@ -8,12 +8,13 @@ import os
 import sys
 import logging
 from flask import Flask
-# Import the rutes After the Flask app is created
-from service import service, models
 
 # Create Flask application
 app = Flask(__name__)
 app.config.from_object('config')
+
+# Import the rutes After the Flask app is created
+from service import service, models
 
 # Set up logging for production
 if __name__ != '__main__':
