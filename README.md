@@ -32,7 +32,8 @@ The flask base service is in the ```service``` directory and its tests are in th
 │   ├── models.py
 │   └── service.py
 ├── tests
-│   ├── test_models.py
+│   ├── product_factory.py
+│   ├── test_models.py
 │   └── test_service.py
 ```
 ### Database  Fields
