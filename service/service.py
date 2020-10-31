@@ -4,9 +4,11 @@ My Service
 Describe what your service does here
 """
 
-#import os
+import os
 #import sys
 #import logging
+#import json
+import requests
 from flask import Flask, jsonify, request, url_for, make_response, abort
 from flask_api import status  # HTTP Status Codes
 from werkzeug.exceptions import NotFound
@@ -19,6 +21,7 @@ from service.models import Product, DataValidationError
 # Import Flask application
 from . import app
 
+SHOPCART_ENDPOINT = os.getenv('SHOPCART_ENDPOINT', 'http://localhost:5000/shopcarts')
 ######################################################################
 # Error Handlers
 ######################################################################
@@ -214,14 +217,25 @@ def purchase_products(product_id):
     product = Product.find(product_id)
     if not product:
         raise NotFound("Product with id '{}' was not found.".format(product_id))
-    '''
-        first check if there is a shopcart item that has the same product id based on shopcart id 
-        if not, then call create to create the shopcart item, 
-        else call update to update the shopcart item with specified amount
-        check if API responds with 200. If response is 200 then return 200 
-        else find what the response is and deal with it correspondingly 
-    '''
-    return make_response("", status.HTTP_204_NO_CONTENT)
+    request_body = request.get_json()
+    amount_update = request_body['amount']
+    shopcart_id = request_body['shopcart_id']
+    shopcart_exists = requests.get(SHOPCART_ENDPOINT, json=request_body)
+    if shopcart_exists.status_code == 200:
+        new_item = {}
+        new_item["id"] = None
+        new_item["sid"] = shopcart_id
+        new_item["sku"] = product_id
+        new_item["amount"] = amount_update
+        product = product.serialize()
+        new_item["name"] = product["name"]
+        new_item["price"] = product["price"]
+        new_item["create_time"] = None
+        new_item["update_time"] = None
+        add_into_shopcart = requests.post(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id), json=new_item)
+        if add_into_shopcart.status_code == 200:
+            return make_response("Product successfully added into the shopping cart", status.HTTP_200_OK)
+    return make_response("Product was not added in the shopping cart because shopcart does not exist", status.HTTP_404_NOT_FOUND)
 
 
 
