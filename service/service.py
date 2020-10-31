@@ -7,8 +7,8 @@ Describe what your service does here
 import os
 #import sys
 #import logging
-import json
-import requests 
+#import json
+import requests
 from flask import Flask, jsonify, request, url_for, make_response, abort
 from flask_api import status  # HTTP Status Codes
 from werkzeug.exceptions import NotFound
@@ -217,55 +217,25 @@ def purchase_products(product_id):
     product = Product.find(product_id)
     if not product:
         raise NotFound("Product with id '{}' was not found.".format(product_id))
-    request_body= request.get_json()
-    shopcart_id = request_body['shopcart_id']
+    request_body = request.get_json()
     amount_update = request_body['amount']
-    shopcart_exists = requests.get("SHOPCART_ENDPOINT/{}".format(shopcart_id))
-    if(shopcart_exists.status_code == 200):
-        shopcart_items = requests.get("SHOPCART_ENDPOINT/{}/items/".format(shopcart_id))
-        if(shopcart_items.status_code == 200):
-            shopcart_items_data = shopcart_items.get_json()
-            found_product_id = False
-            for i in range(len(shopcart_items_data["items"])):
-                if shopcart_items_data["items"][i]["sku"] == product_id:
-                    found_product_id = True
-                    total_amount = shopcart_items_data["items"][i]["amount"] + amount_update
-                    amount_dict = {} 
-                    amount_dict["amount"] = total_amount
-                    update_shopcart = requests.put("SHOPCART_ENDPOINT/{}/items/{}".format(shopcart_id,shopcart_item_id), json = amount_dict)
-                    if update_shopcart.status_code == 200:
-                        return make_response("Added successfully in shopping cart", status.HTTP_200_NO_CONTENT)
-            if found_product_id is False:
-                shopcart_item = {}
-                shopcart_item["id"] = None
-                shopcart_item["sid"] = shopcart_id
-                shopcart_item["sku"] = product_id
-                resp = app.get("/products/{}".format(product.id), content_type="application/json")
-                if resp.status_code == status.HTTP_200_OK:
-                    data = resp.get_json()
-                    name = data["name"]
-                    price = data["price"]
-                    shopcart_item["name"] = name
-                    shopcart_item["price"] = price
-                    shopcart_item["amount"] = amount_update
-                    shopcart_item["create_time"] = None 
-                    shopcart_item["update_time"] = None 
-                    create_shopcart_item = requests.post("SHOPCART_ENDPOINT/{}/items".format(shopcart_id),json=shopcart_item)
-                    if create_shopcart_item.status_code == 201:
-                        return make_response("Added successfully in shopping cart", status.HTTP_204_NO_CONTENT)
-                    else:
-                        return make_response("Bad Request shopcart id does not exist",status.HTTP_400_BAD_REQUEST)
-                else:
-                    return make_response("Bad Request shopcart item could not be added because product does not exist",status.HTTP_400_BAD_REQUEST)
-    else:
-    	return make_response("Bad Request shopcart item could not be added because shopcart does not exist",status.HTTP_400_BAD_REQUEST)
-    '''
-        first check if there is a shopcart item that has the same product id based on shopcart id 
-        if not, then call create to create the shopcart item, 
-        else call update to update the shopcart item with specified amount
-        check if API responds with 200. If response is 200 then return 200 
-        else find what the response is and deal with it correspondingly 
-    '''
+    shopcart_id = request_body['shopcart_id']
+    shopcart_exists = requests.get(SHOPCART_ENDPOINT, json=request_body)
+    if shopcart_exists.status_code == 200:
+        new_item = {}
+        new_item["id"] = None
+        new_item["sid"] = shopcart_id
+        new_item["sku"] = product_id
+        new_item["amount"] = amount_update
+        product = product.serialize()
+        new_item["name"] = product["name"]
+        new_item["price"] = product["price"]
+        new_item["create_time"] = None
+        new_item["update_time"] = None
+        add_into_shopcart = requests.post(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id), json=new_item)
+        if add_into_shopcart.status_code == 200:
+            return make_response("Product successfully added into the shopping cart", status.HTTP_200_OK)
+    return make_response("Product was not added in the shopping cart because shopcart does not exist", status.HTTP_404_NOT_FOUND)
 
 
 

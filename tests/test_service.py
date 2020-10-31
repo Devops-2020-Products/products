@@ -8,7 +8,7 @@ Test cases can be run with the following:
 import os
 import logging
 from unittest import TestCase
-#from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch
 from flask_api import status  # HTTP Status Codes
 from service.models import db, Product
 from service.service import app, init_db
@@ -247,7 +247,7 @@ class TestProductServer(TestCase):
         # check the data just to be sure
         for product in data:
             self.assertEqual(product["description"], test_description)
-    
+
     def test_query_product_by_price(self):
         """ Query Products by Price Range """
         products = self._create_products(10)
@@ -269,12 +269,34 @@ class TestProductServer(TestCase):
         resp = self.app.get("/products/price", query_string="maximum={}".format(test_max_price))
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
     
-    def test_purchase_product(self):
+    @patch('requests.get')
+    @patch('requests.post')
+    def test_purchase_successful_product(self, get_mock, post_mock):
         '''Purchase a Product '''
+        get_mock.return_value = MagicMock(status_code=200)
+        post_mock.return_value = MagicMock(status_code=200)
         product = self._create_products(1)
         json = {"userid": 1, "shopcart_id":2, "amount": 4}
         resp = self.app.post("/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
-        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(len(resp.data), 0)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data, b'Product successfully added into the shopping cart')
     
+    @patch('requests.get')
+    @patch('requests.post')
+    def test_purchase_product_not_found(self, get_mock, post_mock):
+        '''Purchase a Product that's not found'''
+        get_mock.return_value = MagicMock(status_code=200)
+        post_mock.return_value = MagicMock(status_code=200)
+        json = {"userid": 1, "shopcart_id":2, "amount": 4}
+        resp = self.app.post("/products/1/purchase", json=json, content_type="application/json")
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
+    @patch('requests.get')
+    def test_purchase_product_shopcart_not_found(self, get_mock):
+        '''Purchase a Product that's shopcart is not found'''
+        get_mock.return_value = MagicMock(status_code=404)
+        product = self._create_products(1)
+        json = {"userid": 1, "shopcart_id":2, "amount": 4}
+        resp = self.app.post("/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(resp.data, b'Product was not added in the shopping cart because shopcart does not exist')
