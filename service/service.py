@@ -86,7 +86,7 @@ def list_products():
     """ Returns all of the Products """
     app.logger.info("Request for product list")
     products = []
-    
+
     category = request.args.get("category")
     name = request.args.get("name")
     description = request.args.get("description")
@@ -99,7 +99,7 @@ def list_products():
         products = Product.find_by_description(description)
     else:
         products = Product.all()
-    
+
     results = [product.serialize() for product in products]
     app.logger.info("Returning %d products", len(results))
     return make_response(jsonify(results), status.HTTP_200_OK)

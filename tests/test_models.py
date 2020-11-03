@@ -76,7 +76,7 @@ class TestProductModel(unittest.TestCase):
         data = "this is not a dictionary"
         product = Product()
         self.assertRaises(DataValidationError, product.deserialize, data)
-        
+
     def test_add_a_product(self):
         """ Create a product and add it to the database """
         products = Product.all()
@@ -148,7 +148,7 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(products[0].name, "iPhone X")
         self.assertEqual(products[0].description, "Black iPhone")
         self.assertEqual(products[0].price, 9999.99)
-    
+
     def test_find_by_description(self):
         """ Find Products by Description """
         Product(name="iPhone X", description="Black iPhone", category="Technology", price=9999.99).create()
@@ -158,7 +158,7 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(products[0].name, "iPhone X")
         self.assertEqual(products[0].description, "Black iPhone")
         self.assertEqual(products[0].price, 9999.99)
-    
+
     def test_search_by_price(self):
         """ Find Products by Price """
         Product(name="iPhone X", description="Black iPhone", category="Technology", price=9999.99).create()

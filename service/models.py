@@ -38,7 +38,7 @@ class Product(db.Model):
 
     def __repr__(self):
         return "<<Product> %r id=[%s] %r %r %f >" % (self.name, self.id, self.description, self.category, self.price)
-        
+
     def create(self):
         """
         Creates a Product to the data store
@@ -104,7 +104,7 @@ class Product(db.Model):
         db.init_app(app)
         app.app_context().push()
         db.create_all()  # make our sqlalchemy tables
-    
+
     @classmethod
     def all(cls):
         """ Returns all of the Products in the database """
@@ -154,7 +154,7 @@ class Product(db.Model):
         """
         cls.logger.info("Processing description query for %s ...", description)
         return cls.query.filter(cls.description == description)
-    
+
     @classmethod
     def query_by_price(cls, minimum: float, maximum: float):
         """Returns all of the Products match the price in range from minimum to maximum
