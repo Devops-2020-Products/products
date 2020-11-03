@@ -268,7 +268,7 @@ class TestProductServer(TestCase):
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         resp = self.app.get("/products/price", query_string="maximum={}".format(test_max_price))
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-    
+
     @patch('requests.get')
     @patch('requests.post')
     def test_purchase_successful_product(self, get_mock, post_mock):
@@ -280,7 +280,7 @@ class TestProductServer(TestCase):
         resp = self.app.post("/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data, b'Product successfully added into the shopping cart')
-    
+
     @patch('requests.get')
     @patch('requests.post')
     def test_purchase_product_not_found(self, get_mock, post_mock):
