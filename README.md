@@ -61,6 +61,12 @@ The flask base service is in the ```service``` directory and its tests are in th
  PUT /products/{id} - updates a product record in the database with the request body consisting of all the database fields needed
 
  DELETE /products/{id} - deletes a product record in the database  
+ 
+ GET /products?category=str:category - query the database by the category of products
+ 
+ GET /products?name=str:name - query the database by the name of products
+ 
+ GET /products?description=str:description - query the database by the description of products
 
  GET /products/price - query the database by the price range of products
 
