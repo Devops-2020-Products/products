@@ -32,6 +32,7 @@ class TestProductServer(TestCase):
     @classmethod
     def setUpClass(cls):
         """ This runs once before the entire test suite """
+        init_db()
         app.debug = False
         app.testing = True
         app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
@@ -43,7 +44,6 @@ class TestProductServer(TestCase):
 
     def setUp(self):
         """ This runs before each test """
-        init_db()
         db.drop_all()  # clean up the last tests
         db.create_all()  # create new tables
         self.app = app.test_client()
