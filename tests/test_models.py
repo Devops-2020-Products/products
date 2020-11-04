@@ -26,7 +26,7 @@ class TestProductModel(unittest.TestCase):
         """ This runs once before the entire test suite """
         app.debug = False
         app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
-
+        Product.init_db(app)
 
     @classmethod
     def tearDownClass(cls):
@@ -35,7 +35,6 @@ class TestProductModel(unittest.TestCase):
 
     def setUp(self):
         """ This runs before each test """
-        Product.init_db(app)
         db.drop_all()
         db.create_all()
 
