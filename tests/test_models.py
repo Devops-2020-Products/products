@@ -7,7 +7,9 @@ import unittest
 import os
 import json
 from service.models import Product, DataValidationError, db
+from unittest.mock import MagicMock, patch, Mock
 from service import app
+from sqlalchemy.exc import InvalidRequestError
 
 DATABASE_URI = os.getenv("DATABASE_URI", "postgres://postgres:postgres@localhost:5432/postgres")
 
@@ -94,6 +96,18 @@ class TestProductModel(unittest.TestCase):
         products = Product.all()
         self.assertEqual(len(products), 1)
 
+    @patch('service.models.db.session.commit')
+    def test_add_a_product_commit_error(self,commit):
+        """ Create a product and raises an InvalidRequestError """
+        commit.side_effect = InvalidRequestError
+        products = Product.all()
+        self.assertEqual(products, [])
+        product = Product(name="Cake", description="Chocolate Cake", category="Food", price=10.50)
+        self.assertTrue(product is not None)
+        self.assertEqual(product.id, None)
+        product.create()
+        self.assertEqual(products, [])
+
     def test_update_a_product(self):
         """ Update a Product """
         product = Product(name="iPhone X", description="Black iPhone", category="Technology", price=999.99)
@@ -110,6 +124,7 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(len(products), 1)
         self.assertEqual(products[0].price, 9999.99)
         self.assertEqual(products[0].description, "White iPhone")
+    
 
     def test_update_a_product_empty_id(self):
         """ Update a Product with empty id """
