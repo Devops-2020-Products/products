@@ -9,7 +9,7 @@ import os
 #import logging
 #import json
 import requests
-from flask import Flask, jsonify, request, url_for, make_response, abort
+from flask import Flask, jsonify, request, url_for, make_response, abort,render_template
 from flask_api import status  # HTTP Status Codes
 from werkzeug.exceptions import NotFound
 
@@ -76,7 +76,7 @@ def mediatype_not_supported(error):
 @app.route("/")
 def index():
     """ Root URL response """
-    return "Welcome to the flask service for the Products team", status.HTTP_200_OK
+    return render_template('index.html')
 
 ######################################################################
 # LIST ALL PRODUCTS

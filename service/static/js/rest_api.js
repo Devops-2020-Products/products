@@ -6,7 +6,7 @@ $(function () {
 
     // Updates the form with data from the response
     function update_form_data(res) {
-        $("#product_id").val(res._id);
+        $("#product_id").val(res.id);
         $("#product_name").val(res.name);
         $("#product_category").val(res.category);
         $("#product_description").val(res.description);
@@ -255,7 +255,7 @@ $(function () {
             var firstProduct = "";
             for(var i = 0; i < res.length; i++) {
                 var product = res[i];
-                var row = "<tr><td>"+product._id+"</td><td>"+product.name+"</td><td>"+product.description+"</td><td>"+product.category+"</td><td>"+product.price+"</td></tr>";
+                var row = "<tr><td>"+product.id+"</td><td>"+product.name+"</td><td>"+product.description+"</td><td>"+product.category+"</td><td>"+product.price+"</td></tr>";
                 $("#search_results").append(row);
                 if (i == 0) {
                     firstProduct = product;
