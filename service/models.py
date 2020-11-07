@@ -5,6 +5,7 @@ All of the models are stored in this module
 """
 import logging
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import InvalidRequestError
 
 
 # Create the SQLAlchemy object to be initialized later in init_db()
@@ -46,7 +47,11 @@ class Product(db.Model):
         self.logger.info("Creating %s", self.name)
         self.id = None
         db.session.add(self)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except InvalidRequestError:
+            db.session.rollback()
+        
 
     def update(self):
         """
@@ -56,13 +61,19 @@ class Product(db.Model):
         if not self.id:
             self.logger.info("Update called with empty ID field")
             raise DataValidationError("Update called with empty ID field")
-        db.session.commit()
+        try:
+            db.session.commit()
+        except InvalidRequestError:
+            db.session.rollback()
 
     def delete(self):
         """ Removes a Product from the data store """
         self.logger.info("Deleting %r", self.name)
         db.session.delete(self)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except InvalidRequestError:
+            db.session.rollback()
 
     def serialize(self):
         """ Serializes a Product into a dictionary """
