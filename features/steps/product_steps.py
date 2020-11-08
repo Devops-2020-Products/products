@@ -28,7 +28,7 @@ def step_impl(context):
     for product in context.resp.json():
         context.resp = requests.delete(context.base_url + '/products/' + str(product["id"]), headers=headers)
         expect(context.resp.status_code).to_equal(204)
-    
+
     # load the database with new products
     create_url = context.base_url + '/products'
     for row in context.table:
@@ -82,3 +82,21 @@ def step_impl(context, message):
 def step_impl(context, button):
     button_id = button.lower() + '-btn'
     context.driver.find_element_by_id(button_id).click()
+
+@then('I should see "{text_string}" in the "{element_name}" field')
+def step_impl(context, text_string, element_name):
+    element_id = ID_PREFIX + element_name.lower()
+    found = WebDriverWait(context.driver, WAIT_SECONDS).until(
+        expected_conditions.text_to_be_present_in_element_value(
+            (By.ID, element_id),
+            text_string
+        )
+    )
+    expect(found).to_be(True)
+
+@then('the "{element_name}" field should be empty')
+def step_impl(context, element_name):
+    element_id = ID_PREFIX + element_name.lower()
+    element = context.driver.find_element_by_id(element_id)
+    expect(element.get_attribute('value')).to_be(u'')
+    
