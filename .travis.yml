@@ -6,7 +6,7 @@ python:
 install: "pip install -r requirements.txt"
 
 env:
-  - DATABASE_URI=postgres://postgres:postgres@localhost:5432/travis_ci_test
+  - DATABASE_URI=postgres://postgres:postgres@localhost:5432/travis_ci_test TEST_DATABASE_URI=postgres://postgres:postgres@localhost:5432/travis_ci_test
 
 # commands to run tests
 before_script:

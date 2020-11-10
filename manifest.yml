@@ -13,6 +13,7 @@ applications:
   timeout: 180
   services:
   - ElephantSQL
+  - ElephantSQLForTest
   env:
     FLASK_APP : service:app
     FLASK_DEBUG : false
