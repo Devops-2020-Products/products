@@ -6,10 +6,12 @@ import json
 
 # Get configuration from environment
 DATABASE_URI = os.getenv("DATABASE_URI", "sqlite:///../development.db")
+TEST_DATABASE_URI = os.getenv("TEST_DATABASE_URI", "sqlite:///../development.db")
 
 if 'VCAP_SERVICES' in os.environ:
     vcap = json.loads(os.environ['VCAP_SERVICES'])
-    DATABASE_URI = vcap['user-provided'][0]['credentials']['url']
+    DATABASE_URI = vcap['user-provided'][1]['credentials']['url']
+    TEST_DATABASE_URI = vcap['user-provided'][0]['credentials']['url']
 
 # Configure SQLAlchemy
 SQLALCHEMY_DATABASE_URI = DATABASE_URI

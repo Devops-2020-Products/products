@@ -15,14 +15,6 @@ from service.models import db, Product
 from service.service import app, init_db
 from tests.product_factory import ProductFactory
 
-DATABASE_URI = os.getenv(
-    "DATABASE_URI", "postgres://postgres:postgres@localhost:5432/postgres"
-)
-
-if 'VCAP_SERVICES' in os.environ:
-    vcap = json.loads(os.environ['VCAP_SERVICES'])
-    DATABASE_URI = vcap['user-provided'][0]['credentials']['url']
-
 ######################################################################
 #  T E S T   C A S E S
 ######################################################################
@@ -35,7 +27,7 @@ class TestProductServer(TestCase):
         init_db()
         app.debug = False
         app.testing = True
-        app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
+        app.config["SQLALCHEMY_DATABASE_URI"] = app.config["TEST_DATABASE_URI"]
 
     @classmethod
     def tearDownClass(cls):
