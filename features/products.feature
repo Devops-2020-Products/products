@@ -28,9 +28,9 @@ Scenario: Read a Product
     When I visit the "Home Page"
     And I set the "Name" to "Samsung TV"
     And I press the "Search" button
-    And I copy from the "ID" field
+    And I copy the "ID" field
     And I press the "Clear" button
-    And I paste to the "ID" field
+    And I paste the "ID" field
     And I press the "Retrieve" button
     Then I should see the message "Success"
     And I should see "Samsung TV" in the "Name" field
@@ -53,3 +53,22 @@ Scenario: Query Products by Price
     And I should see "52 inch Samsung TV" in the "Description" field
     And I should see "Tech" in the "Category" field
     And I should see "3999.99" in the "Price" field
+
+Scenario: Update a Product
+    When I visit the "Home Page"
+    And I set the "Name" to "White Bread"
+    And I press the "Search" button
+    Then I should see "White Bread" in the "Name" field
+    And I should see "Food" in the "Category" field
+    When I change "Name" to "Wheat Bread"
+    And I press the "Update" button
+    Then I should see the message "Success"
+    When I copy the "ID" field
+    And I press the "Clear" button
+    And I paste the "ID" field
+    And I press the "Retrieve" button
+    Then I should see "Wheat Bread" in the "Name" field
+    When I press the "Clear" button
+    And I press the "Search" button
+    Then I should see "Wheat Bread" in the results
+    Then I should not see "White Bread" in the results
