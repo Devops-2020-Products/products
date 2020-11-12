@@ -41,3 +41,15 @@ Scenario: Read a Product
     And I set the "ID" to "2147483648"
     And I press the "Retrieve" button
     Then I should see the message "404 Not Found: Product with id '2147483648' was not found."
+
+Scenario: Query Products by Price
+    When I visit the "Home Page"
+    And I set the "Price_Range" to "1000-4000"
+    And I press the "Search" button
+    Then I should see "Samsung TV" in the results
+    And I should see "Samsung Galaxy 20" in the results
+    And I should not see "White Bread" in the results
+    And I should not see "Soap" in the results
+    And I should see "52 inch Samsung TV" in the "Description" field
+    And I should see "Tech" in the "Category" field
+    And I should see "3999.99" in the "Price" field

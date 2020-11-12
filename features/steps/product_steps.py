@@ -22,7 +22,7 @@ ID_PREFIX = 'product_'
 def step_impl(context):
     """ Delete all Products and load new ones """
     headers = {'Content-Type': 'application/json'}
-    # list all of the pets and delete them one by one
+    # list all of the products and delete them one by one
     context.resp = requests.get(context.base_url + '/products', headers=headers)
     expect(context.resp.status_code).to_equal(200)
     for product in context.resp.json():
@@ -117,3 +117,19 @@ def step_impl(context, element_name):
     )
     element.clear()
     element.send_keys(context.clipboard)
+
+@then('I should see "{name}" in the results')
+def step_impl(context, name):
+    found = WebDriverWait(context.driver, WAIT_SECONDS).until(
+        expected_conditions.text_to_be_present_in_element(
+            (By.ID, 'search_results'),
+            name
+        )
+    )
+    expect(found).to_be(True)
+
+@then('I should not see "{name}" in the results')
+def step_impl(context, name):
+    element = context.driver.find_element_by_id('search_results')
+    error_msg = "I should not see '%s' in '%s'" % (name, element.text)
+    ensure(name in element.text, False, error_msg)
