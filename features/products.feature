@@ -26,19 +26,18 @@ Scenario: Create a Product
 
 Scenario: Read a Product
     When I visit the "Home Page"
-    And I set the "ID" to "1"
+    And I set the "Name" to "Samsung TV"
+    And I press the "Search" button
+    And I copy from the "ID" field
+    And I press the "Clear" button
+    And I paste to the "ID" field
     And I press the "Retrieve" button
     Then I should see the message "Success"
     And I should see "Samsung TV" in the "Name" field
-    And I should see "52 inch Samsung TV" in the "Description" field
     And I should see "Tech" in the "Category" field
+    And I should see "52 inch Samsung TV" in the "Description" field
     And I should see "3999.99" in the "Price" field
     When I press the "Clear" button
-    Then the "ID" field should be empty
-    And the "Name" field should be empty
-    And the "Description" field should be empty
-    And the "Category" field should be empty
-    And the "Price" field should be empty
-    When I set the "ID" to "10"
+    And I set the "ID" to "2147483648"
     And I press the "Retrieve" button
-    Then I should see the message "404 Not Found: Product with id '10' was not found."
+    Then I should see the message "404 Not Found: Product with id '2147483648' was not found."

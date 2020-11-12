@@ -5,8 +5,8 @@ import os
 import json
 
 # Get configuration from environment
-DATABASE_URI = os.getenv("DATABASE_URI", "sqlite:///../development.db")
-TEST_DATABASE_URI = os.getenv("TEST_DATABASE_URI", "sqlite:///../development.db")
+DATABASE_URI = os.getenv("DATABASE_URI", "postgres://postgres:postgres@localhost:5432/postgres")
+TEST_DATABASE_URI = os.getenv("TEST_DATABASE_URI", "postgres://postgres:postgres@localhost:5432/postgres")
 
 if 'VCAP_SERVICES' in os.environ:
     vcap = json.loads(os.environ['VCAP_SERVICES'])
