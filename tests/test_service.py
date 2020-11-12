@@ -43,7 +43,6 @@ class TestProductServer(TestCase):
     def tearDown(self):
         """ This runs after each test """
         db.session.remove()
-        db.drop_all()
 
     def _create_products(self, count):
         """ Factory method to create products in bulk """
