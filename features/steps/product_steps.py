@@ -99,4 +99,21 @@ def step_impl(context, element_name):
     element_id = ID_PREFIX + element_name.lower()
     element = context.driver.find_element_by_id(element_id)
     expect(element.get_attribute('value')).to_be(u'')
-    
+
+@when('I copy from the "{element_name}" field')
+def step_impl(context, element_name):
+    element_id = ID_PREFIX + element_name.lower()
+    element = WebDriverWait(context.driver, WAIT_SECONDS).until(
+        expected_conditions.presence_of_element_located((By.ID, element_id))
+    )
+    context.clipboard = element.get_attribute('value')
+    logging.info('Clipboard contains: %s', context.clipboard)
+
+@when('I paste to the "{element_name}" field')
+def step_impl(context, element_name):
+    element_id = ID_PREFIX + element_name.lower()
+    element = WebDriverWait(context.driver, WAIT_SECONDS).until(
+        expected_conditions.presence_of_element_located((By.ID, element_id))
+    )
+    element.clear()
+    element.send_keys(context.clipboard)
