@@ -233,7 +233,7 @@ def purchase_products(product_id):
         new_item["create_time"] = None
         new_item["update_time"] = None
         add_into_shopcart = requests.post(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id), json=new_item)
-        if add_into_shopcart.status_code == 200:
+        if add_into_shopcart.status_code == 201:
             return make_response("Product successfully added into the shopping cart", status.HTTP_200_OK)
     return make_response("Product was not added in the shopping cart because shopcart does not exist", status.HTTP_404_NOT_FOUND)
 

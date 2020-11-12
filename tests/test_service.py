@@ -265,24 +265,25 @@ class TestProductServer(TestCase):
         resp = self.app.get("/products/price", query_string="maximum={}".format(test_max_price))
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @patch('requests.get')
-    @patch('requests.post')
-    def test_purchase_successful_product(self, get_mock, post_mock):
+
+    def test_purchase_successful_product(self):
         '''Purchase a Product '''
-        get_mock.return_value = MagicMock(status_code=200)
-        post_mock.return_value = MagicMock(status_code=200)
-        product = self._create_products(1)
-        json = {"userid": 1, "shopcart_id":2, "amount": 4}
-        resp = self.app.post("/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(resp.data, b'Product successfully added into the shopping cart')
+        with patch('requests.get') as get_mock:
+            get_mock.return_value = MagicMock(status_code=200)
+            with patch('requests.post') as post_mock:
+                post_mock.return_value = MagicMock(status_code=201)
+                product = self._create_products(1)
+                json = {"userid": 1, "shopcart_id":2, "amount": 4}
+                resp = self.app.post("/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
+                self.assertEqual(resp.status_code, status.HTTP_200_OK)
+                self.assertEqual(resp.data, b'Product successfully added into the shopping cart')
 
     @patch('requests.get')
     @patch('requests.post')
     def test_purchase_product_not_found(self, get_mock, post_mock):
         '''Purchase a Product that's not found'''
         get_mock.return_value = MagicMock(status_code=200)
-        post_mock.return_value = MagicMock(status_code=200)
+        post_mock.return_value = MagicMock(status_code=201)
         json = {"userid": 1, "shopcart_id":2, "amount": 4}
         resp = self.app.post("/products/1/purchase", json=json, content_type="application/json")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
