@@ -163,12 +163,18 @@ $(function () {
     $("#purchase-btn").click(function () {
 
         var product_id = $("#product_id").val();
+        var product_amount = $("#product_amount").val();
+        
+        var data = {
+            "amount": product_amount,
+            "shopcart_id": None
+        };
 
         var ajax = $.ajax({
             type: "POST",
             url: "/products/" + product_id + "/purchase",
             contentType: "application/json",
-            data: '',
+            data: JSON.stringify(data),
         })
 
         ajax.done(function(res){
