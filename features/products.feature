@@ -42,6 +42,18 @@ Scenario: Read a Product
     And I press the "Retrieve" button
     Then I should see the message "404 Not Found: Product with id '2147483648' was not found."
 
+Scenario: List All Products
+    When I visit the "Home Page"
+    And I press the "Search" button
+    Then I should see "Samsung TV" in the results
+    And I should see "Samsung Galaxy 20" in the results
+    And I should see "White Bread" in the results
+    And I should not see "Soap" in the results
+    And I should see "Samsung TV" in the "Name" field
+    And I should see "52 inch Samsung TV" in the "Description" field
+    And I should see "Tech" in the "Category" field
+    And I should see "3999.99" in the "Price" field
+
 Scenario: Query Products by Price
     When I visit the "Home Page"
     And I set the "Price_Range" to "1000-4000"
@@ -53,6 +65,45 @@ Scenario: Query Products by Price
     And I should see "52 inch Samsung TV" in the "Description" field
     And I should see "Tech" in the "Category" field
     And I should see "3999.99" in the "Price" field
+
+Scenario: Query Products by Name
+    When I visit the "Home Page"
+    And I set the "Name" to "Samsung Galaxy 20"
+    And I press the "Search" button
+    Then I should see "Samsung Galaxy 20" in the results
+    And I should not see "Samsung TV" in the results
+    And I should not see "White Bread" in the results
+    And I should not see "Soap" in the results
+    And I should see "Samsung Galaxy 20" in the "Name" field
+    And I should see "Black Samsung phone" in the "Description" field
+    And I should see "Tech" in the "Category" field
+    And I should see "1999.99" in the "Price" field
+
+Scenario: Query Products by Category
+    When I visit the "Home Page"
+    And I set the "Category" to "Tech"
+    And I press the "Search" button
+    Then I should see "Samsung TV" in the results
+    And I should see "Samsung Galaxy 20" in the results
+    And I should not see "White Bread" in the results
+    And I should not see "Soap" in the results
+    And I should see "Samsung TV" in the "Name" field
+    And I should see "52 inch Samsung TV" in the "Description" field
+    And I should see "Tech" in the "Category" field
+    And I should see "3999.99" in the "Price" field
+
+Scenario: Query Products by Description
+    When I visit the "Home Page"
+    And I set the "Description" to "Wonder Bread"
+    And I press the "Search" button
+    Then I should see "White Bread" in the results
+    And I should not see "Samsung TV" in the results
+    And I should not see "Samsung Galaxy 20" in the results
+    And I should not see "Soap" in the results
+    And I should see "White Bread" in the "Name" field
+    And I should see "Wonder Bread" in the "Description" field
+    And I should see "Food" in the "Category" field
+    And I should see "3.99" in the "Price" field
 
 Scenario: Update a Product
     When I visit the "Home Page"
