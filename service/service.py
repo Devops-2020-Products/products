@@ -115,7 +115,7 @@ def query_product_by_price():
 
     minimum = request.args.get('minimum')
     maximum = request.args.get('maximum')
-    if maximum == "" or minimum == "":
+    if maximum == "" or maximum is None or minimum == "" or minimum is None:
         return request_validation_error("Minimum and Maximum cannot be empty")
 
     products = Product.query_by_price(minimum, maximum)

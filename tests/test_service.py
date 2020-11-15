@@ -264,7 +264,10 @@ class TestProductServer(TestCase):
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         resp = self.app.get("/products/price", query_string="maximum={}".format(test_max_price))
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-
+        resp = self.app.get("/products/price", query_string="minimum={}&maximum={}".format(test_min_price, ""))
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        resp = self.app.get("/products/price", query_string="minimum={}&maximum={}".format("", test_max_price))
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_purchase_successful_product(self):
         '''Purchase a Product '''
