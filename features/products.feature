@@ -37,7 +37,9 @@ Scenario: Read a Product
     And I should see "Tech" in the "Category" field
     And I should see "52 inch Samsung TV" in the "Description" field
     And I should see "3999.99" in the "Price" field
-    When I press the "Clear" button
+
+Scenario: Read a None-Existing Product
+    When I visit the "Home Page"
     And I set the "ID" to "2147483648"
     And I press the "Retrieve" button
     Then I should see the message "404 Not Found: Product with id '2147483648' was not found."

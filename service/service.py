@@ -116,6 +116,8 @@ def query_product_by_price():
     minimum = request.args.get('minimum')
     maximum = request.args.get('maximum')
     if maximum is None or minimum is None:
+        return request_validation_error("Minimum and Maximum cannot be none")
+    if maximum == "" or minimum == "":
         return request_validation_error("Minimum and Maximum cannot be empty")
 
     products = Product.query_by_price(minimum, maximum)
@@ -137,6 +139,8 @@ def create_products():
     check_content_type("application/json")
     product = Product()
     product.deserialize(request.get_json())
+    if product.id == "" or product.name == "" or product.description == "" or product.price == "" or product.category == "":
+        return request_validation_error("Fields cannot be empty")
     product.create()
     message = product.serialize()
 
@@ -196,8 +200,20 @@ def update_products(product_id):
     product = Product.find(product_id)
     if not product:
         raise NotFound("Product with id '{}' was not found.".format(product_id))
+    product_name = product.name
+    product_description = product.description
+    product_category = product.category
+    product_price = product.price
     product.deserialize(request.get_json())
     product.id = product_id
+    if product.name == "":
+        product.name = product_name
+    if product.description == "":
+        product.description = product_description
+    if product.price == "":
+        product.price = product_price
+    if product.category == "":
+        product.category = product_category
     product.update()
 
     app.logger.info("Product with ID [%s] updated.", product.id)
