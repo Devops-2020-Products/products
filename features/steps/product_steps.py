@@ -143,3 +143,8 @@ def step_impl(context, element_name, text_string):
     )
     element.clear()
     element.send_keys(text_string)
+
+@then('I should see "{message}" in the return message')
+def step_impl(context, message):
+    error_msg = "I should see '%s' in '%s'" % (message, context.resp.text)
+    ensure(message in context.resp.text, True, error_msg)
