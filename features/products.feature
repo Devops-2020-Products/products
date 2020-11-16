@@ -125,3 +125,15 @@ Scenario: Update a Product
     And I press the "Search" button
     Then I should see "Wheat Bread" in the results
     Then I should not see "White Bread" in the results
+    
+Scenario: Delete a Product
+    When I visit the "Home Page"
+    And I set the "Name" to "White Bread"
+    And I press the "Search" button
+    Then I should see "White Bread" in the "Name" field
+    And I should see "Food" in the "Category" field
+    When I copy the "ID" field
+    And I press the "Clear" button
+    And I paste the "ID" field
+    And I press the "Delete" button
+    Then I should see the message "Success"
