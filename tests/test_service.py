@@ -118,6 +118,16 @@ class TestProductServer(TestCase):
         )
         self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
+    def test_create_product_with_bad_request(self):
+        """ Create a new Product with bad request"""
+        test_product = ProductFactory()
+        logging.debug(test_product)
+        test_product.category = ""
+        resp = self.app.post(
+            "/products", json=test_product.serialize(), content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_get_product(self):
         """ Get a single product by its ID """
         # get the id of a product
@@ -152,6 +162,9 @@ class TestProductServer(TestCase):
         """ Update an existing Product """
         # create a product to update
         test_product = ProductFactory()
+        test_product_name = test_product.name
+        test_product_description = test_product.description
+        test_product_price = test_product.price
         resp = self.app.post(
             "/products", json=test_product.serialize(), content_type="application/json"
         )
@@ -168,6 +181,51 @@ class TestProductServer(TestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         updated_product = resp.get_json()
         self.assertEqual(updated_product["category"], "Education")
+
+        # create an update request with partial information
+        part_product = resp.get_json()
+        part_product["category"] = ""
+        resp = self.app.put(
+            "/products/{}".format(part_product["id"]),
+            json=part_product,
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        updated_product = resp.get_json()
+        self.assertEqual(updated_product["category"], "Education")
+
+        part_product = resp.get_json()
+        part_product["name"] = ""
+        resp = self.app.put(
+            "/products/{}".format(part_product["id"]),
+            json=part_product,
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        updated_product = resp.get_json()
+        self.assertEqual(updated_product["name"], test_product_name)
+
+        part_product = resp.get_json()
+        part_product["description"] = ""
+        resp = self.app.put(
+            "/products/{}".format(part_product["id"]),
+            json=part_product,
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        updated_product = resp.get_json()
+        self.assertEqual(updated_product["description"], test_product_description)
+
+        part_product = resp.get_json()
+        part_product["price"] = ""
+        resp = self.app.put(
+            "/products/{}".format(part_product["id"]),
+            json=part_product,
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        updated_product = resp.get_json()
+        self.assertEqual(updated_product["price"], test_product_price)
 
     def test_update_product_not_found(self):
         """ Update a product that's not found """
@@ -265,7 +323,10 @@ class TestProductServer(TestCase):
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         resp = self.app.get("/products/price", query_string="maximum={}".format(test_max_price))
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-
+        resp = self.app.get("/products/price", query_string="minimum={}&maximum={}".format(test_min_price, ""))
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        resp = self.app.get("/products/price", query_string="minimum={}&maximum={}".format("", test_max_price))
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_purchase_successful_product(self):
         '''Purchase a Product '''
