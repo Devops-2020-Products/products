@@ -413,3 +413,6 @@ class TestProductServer(TestCase):
     #                 resp = self.app.post("/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
     #                 self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
     #                 self.assertEqual(resp.data, b'Product not successfully added into the shopping cart')
+
+
+    ## TO DO: Find a way to test successful creation of a shopcart but unsuccessful adding product to shopcart 
