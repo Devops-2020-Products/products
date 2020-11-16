@@ -1,4 +1,4 @@
 [MESSAGES CONTROL]
-disable=E1101
+disable=E1101,R0904
 [FORMAT]
 max-line-length=240

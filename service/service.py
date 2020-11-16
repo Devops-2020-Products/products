@@ -241,8 +241,8 @@ def purchase_products(product_id):
     r_json = resp.json()
     if len(r_json) == 0:
         info_json = {"user_id": user_id}
-        create_shopcart = requests.post(SHOPCART_ENDPOINT,headers = header,json = info_json)
-        if create_shopcart.status_code == 201:
+        create_shopcart_resp = create_shopcart(SHOPCART_ENDPOINT,header,info_json)
+        if create_shopcart_resp.status_code == 201:
             message = create_shopcart.json()
             shopcart_id = message['id']
             new_item = {}
@@ -255,32 +255,25 @@ def purchase_products(product_id):
             new_item["price"] = product["price"]
             new_item["create_time"] = None
             new_item["update_time"] = None
-            add_into_shopcart = requests.post(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id), json=new_item)
+            add_into_shopcart = add_item_to_shopcart(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id),header,new_item)
             if add_into_shopcart.status_code == 201:
                 return make_response("Product successfully added into the shopping cart", status.HTTP_200_OK)
-            else: 
-                return make_response("Product not successfully added into the shopping cart", status.HTTP_400_BAD_REQUEST)
-        else:
-            return make_response("Cannot create shopcart so cannot add product into shopping cart", status.HTTP_400_BAD_REQUEST)
-    else:
-        shopcart_id = r_json[0]['id']
-        new_item = {}
-        new_item["id"] = None
-        new_item["sid"] = shopcart_id
-        new_item["sku"] = product_id
-        new_item["amount"] = amount_update
-        product = product.serialize()
-        new_item["name"] = product["name"]
-        new_item["price"] = product["price"]
-        new_item["create_time"] = None
-        new_item["update_time"] = None
-        add_into_shopcart = requests.post(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id), json=new_item)
-        if add_into_shopcart.status_code == 201:
-            return make_response("Product successfully added into the shopping cart", status.HTTP_200_OK)
-        else:
-            return make_response("Product was not added in the shopping cart because of an error", status.HTTP_404_NOT_FOUND)
-
-
+            return make_response("Product not successfully added into the shopping cart", status.HTTP_400_BAD_REQUEST)
+        return make_response("Cannot create shopcart so cannot add product into shopping cart", status.HTTP_400_BAD_REQUEST)
+    shopcart_id = r_json[0]['id']
+    new_item = {}
+    new_item["sid"] = shopcart_id
+    new_item["sku"] = product_id
+    new_item["amount"] = amount_update
+    product = product.serialize()
+    new_item["name"] = product["name"]
+    new_item["price"] = product["price"]
+    new_item["create_time"] = None
+    new_item["update_time"] = None
+    add_into_shopcart = add_item_to_shopcart(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id),header,new_item)
+    if add_into_shopcart.status_code == 201:
+        return make_response("Product successfully added into the shopping cart", status.HTTP_200_OK)
+    return make_response("Product was not added in the shopping cart because of an error", status.HTTP_404_NOT_FOUND)
 
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
@@ -297,3 +290,11 @@ def check_content_type(content_type):
         return
     app.logger.error("Invalid Content-Type: %s", request.headers["Content-Type"])
     abort(415, "Content-Type must be {}".format(content_type))
+
+def create_shopcart(url,header,json_data):
+    '''Used to call the create shopcart function'''
+    return requests.post(url,headers = header,json = json_data)
+
+def add_item_to_shopcart(url,header,json_data):
+    '''Used to call the add item to shopcart function'''
+    return requests.post(url,headers = header, json = json_data)

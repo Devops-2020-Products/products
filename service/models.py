@@ -51,7 +51,7 @@ class Product(db.Model):
             db.session.commit()
         except InvalidRequestError:
             db.session.rollback()
-        
+
 
     def update(self):
         """
@@ -99,11 +99,11 @@ class Product(db.Model):
             self.price = data["price"]
 
         except KeyError as error:
-            raise DataValidationError("Invalid product : missing " + error.args[0])
+            raise DataValidationError("Invalid product : missing " + error.args[0]) from error
         except TypeError as error:
             raise DataValidationError(
                 "Invalid product: body of request contained bad or no data"
-            )
+            ) from error
         return self
 
     @classmethod
