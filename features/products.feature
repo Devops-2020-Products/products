@@ -136,6 +136,6 @@ Scenario: Delete a Product
     And I press the "Clear" button
     And I paste the "ID" field
     And I press the "Delete" button
-    Then I should see "delete complete" in the return message
+    Then I should see "Product has been Deleted!" in the return message
 
 
