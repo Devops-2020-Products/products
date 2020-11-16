@@ -258,8 +258,10 @@ def purchase_products(product_id):
             add_into_shopcart = requests.post(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id), json=new_item)
             if add_into_shopcart.status_code == 201:
                 return make_response("Product successfully added into the shopping cart", status.HTTP_200_OK)
+            else: 
+                return make_response("Product not successfully added into the shopping cart", status.HTTP_400_BAD_REQUEST)
         else:
-            make_response("Cannot create shopcart so cannot add product into shopping cart", status.HTTP_400_BAD_REQUEST)
+            return make_response("Cannot create shopcart so cannot add product into shopping cart", status.HTTP_400_BAD_REQUEST)
     else:
         shopcart_id = r_json[0]['id']
         new_item = {}
