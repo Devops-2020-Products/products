@@ -146,5 +146,5 @@ def step_impl(context, element_name, text_string):
 
 @then('I should see "{message}" in the return message')
 def step_impl(context, message):
-    error_msg = "I should see '%s' in '%s'" % (message, context.resp.text)
-    ensure(message in context.resp.text, True, error_msg)
+    element = context.driver.find_element_by_id('flash_message')
+    expect(element.text).to_contain(message)
