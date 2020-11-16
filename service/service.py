@@ -219,9 +219,33 @@ def purchase_products(product_id):
         raise NotFound("Product with id '{}' was not found.".format(product_id))
     request_body = request.get_json()
     amount_update = request_body['amount']
-    shopcart_id = request_body['shopcart_id']
-    shopcart_exists = requests.get(SHOPCART_ENDPOINT, json=request_body)
-    if shopcart_exists.status_code == 200:
+    user_id = request_body['user_id']
+    header = {'Content-Type': 'application/json'}
+    resp = requests.get('{}?user_id={}'.format(SHOPCART_ENDPOINT,user_id),headers = header)
+    r_json = resp.json()
+    if len(r_json) == 0:
+        info_json = {"user_id": user_id}
+        create_shopcart = requests.post(SHOPCART_ENDPOINT,headers = header,json = info_json)
+        if create_shopcart.status_code == 201:
+            message = create_shopcart.json()
+            shopcart_id = message['id']
+            new_item = {}
+            new_item["id"] = None
+            new_item["sid"] = shopcart_id
+            new_item["sku"] = product_id
+            new_item["amount"] = amount_update
+            product = product.serialize()
+            new_item["name"] = product["name"]
+            new_item["price"] = product["price"]
+            new_item["create_time"] = None
+            new_item["update_time"] = None
+            add_into_shopcart = requests.post(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id), json=new_item)
+            if add_into_shopcart.status_code == 201:
+                return make_response("Product successfully added into the shopping cart", status.HTTP_200_OK)
+        else:
+            make_response("Cannot create shopcart so cannot add product into shopping cart", status.HTTP_400_BAD_REQUEST)
+    else:
+        shopcart_id = r_json[0]['id']
         new_item = {}
         new_item["id"] = None
         new_item["sid"] = shopcart_id
@@ -235,7 +259,8 @@ def purchase_products(product_id):
         add_into_shopcart = requests.post(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id), json=new_item)
         if add_into_shopcart.status_code == 201:
             return make_response("Product successfully added into the shopping cart", status.HTTP_200_OK)
-    return make_response("Product was not added in the shopping cart because shopcart does not exist", status.HTTP_404_NOT_FOUND)
+        else:
+            return make_response("Product was not added in the shopping cart because of an error", status.HTTP_404_NOT_FOUND)
 
 
 
