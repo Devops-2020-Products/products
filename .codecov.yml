@@ -1,0 +1,9 @@
+coverage:
+  status:
+    # pull-requests only
+    patch:
+      default:
+        target: 95%
+    project:
+      default:
+        target: 95%

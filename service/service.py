@@ -33,7 +33,7 @@ def request_validation_error(error):
 
 @app.errorhandler(status.HTTP_400_BAD_REQUEST)
 def bad_request(error):
-    """ Handles bad reuests with 400_BAD_REQUEST """
+    """ Handles bad requests with 400_BAD_REQUEST """
     message = str(error)
     app.logger.warning(message)
     return (
@@ -58,7 +58,7 @@ def not_found(error):
 
 @app.errorhandler(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 def mediatype_not_supported(error):
-    """ Handles unsuppoted media requests with 415_UNSUPPORTED_MEDIA_TYPE """
+    """ Handles unsupported media requests with 415_UNSUPPORTED_MEDIA_TYPE """
     message = str(error)
     app.logger.warning(message)
     return (
@@ -116,6 +116,8 @@ def query_product_by_price():
     minimum = request.args.get('minimum')
     maximum = request.args.get('maximum')
     if maximum is None or minimum is None:
+        return request_validation_error("Minimum and Maximum cannot be none")
+    if maximum == "" or minimum == "":
         return request_validation_error("Minimum and Maximum cannot be empty")
 
     products = Product.query_by_price(minimum, maximum)
@@ -137,6 +139,8 @@ def create_products():
     check_content_type("application/json")
     product = Product()
     product.deserialize(request.get_json())
+    if product.id == "" or product.name == "" or product.description == "" or product.price == "" or product.category == "":
+        return request_validation_error("Fields cannot be empty")
     product.create()
     message = product.serialize()
 
@@ -196,8 +200,20 @@ def update_products(product_id):
     product = Product.find(product_id)
     if not product:
         raise NotFound("Product with id '{}' was not found.".format(product_id))
+    product_name = product.name
+    product_description = product.description
+    product_category = product.category
+    product_price = product.price
     product.deserialize(request.get_json())
     product.id = product_id
+    if product.name == "":
+        product.name = product_name
+    if product.description == "":
+        product.description = product_description
+    if product.price == "":
+        product.price = product_price
+    if product.category == "":
+        product.category = product_category
     product.update()
 
     app.logger.info("Product with ID [%s] updated.", product.id)
@@ -219,32 +235,52 @@ def purchase_products(product_id):
         raise NotFound("Product with id '{}' was not found.".format(product_id))
     request_body = request.get_json()
     amount_update = request_body['amount']
-    shopcart_id = request_body['shopcart_id']
-    shopcart_exists = requests.get(SHOPCART_ENDPOINT, json=request_body)
-    if shopcart_exists.status_code == 200:
-        new_item = {}
-        new_item["id"] = None
-        new_item["sid"] = shopcart_id
-        new_item["sku"] = product_id
-        new_item["amount"] = amount_update
-        product = product.serialize()
-        new_item["name"] = product["name"]
-        new_item["price"] = product["price"]
-        new_item["create_time"] = None
-        new_item["update_time"] = None
-        add_into_shopcart = requests.post(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id), json=new_item)
-        if add_into_shopcart.status_code == 201:
-            return make_response("Product successfully added into the shopping cart", status.HTTP_200_OK)
-    return make_response("Product was not added in the shopping cart because shopcart does not exist", status.HTTP_404_NOT_FOUND)
-
-
+    user_id = request_body['user_id']
+    header = {'Content-Type': 'application/json'}
+    resp = requests.get('{}?user_id={}'.format(SHOPCART_ENDPOINT,user_id),headers = header)
+    r_json = resp.json()
+    if len(r_json) == 0:
+        info_json = {"user_id": user_id}
+        create_shopcart_resp = create_shopcart(SHOPCART_ENDPOINT,header,info_json)
+        if create_shopcart_resp.status_code == 201:
+            message = create_shopcart.json()
+            shopcart_id = message['id']
+            new_item = {}
+            new_item["id"] = None
+            new_item["sid"] = shopcart_id
+            new_item["sku"] = product_id
+            new_item["amount"] = amount_update
+            product = product.serialize()
+            new_item["name"] = product["name"]
+            new_item["price"] = product["price"]
+            new_item["create_time"] = None
+            new_item["update_time"] = None
+            add_into_shopcart = add_item_to_shopcart(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id),header,new_item)
+            if add_into_shopcart.status_code == 201:
+                return make_response("Product successfully added into the shopping cart", status.HTTP_200_OK)
+            return make_response("Product not successfully added into the shopping cart", status.HTTP_400_BAD_REQUEST)
+        return make_response("Cannot create shopcart so cannot add product into shopping cart", status.HTTP_400_BAD_REQUEST)
+    shopcart_id = r_json[0]['id']
+    new_item = {}
+    new_item["sid"] = shopcart_id
+    new_item["sku"] = product_id
+    new_item["amount"] = amount_update
+    product = product.serialize()
+    new_item["name"] = product["name"]
+    new_item["price"] = product["price"]
+    new_item["create_time"] = None
+    new_item["update_time"] = None
+    add_into_shopcart = add_item_to_shopcart(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id),header,new_item)
+    if add_into_shopcart.status_code == 201:
+        return make_response("Product successfully added into the shopping cart", status.HTTP_200_OK)
+    return make_response("Product was not added in the shopping cart because of an error", status.HTTP_404_NOT_FOUND)
 
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
 ######################################################################
 
 def init_db():
-    """ Initialies the SQLAlchemy app """
+    """ Initializes the SQLAlchemy app """
     global app
     Product.init_db(app)
 
@@ -254,3 +290,11 @@ def check_content_type(content_type):
         return
     app.logger.error("Invalid Content-Type: %s", request.headers["Content-Type"])
     abort(415, "Content-Type must be {}".format(content_type))
+
+def create_shopcart(url,header,json_data):
+    '''Used to call the create shopcart function'''
+    return requests.post(url,headers = header,json = json_data)
+
+def add_item_to_shopcart(url,header,json_data):
+    '''Used to call the add item to shopcart function'''
+    return requests.post(url,headers = header, json = json_data)

@@ -4,12 +4,12 @@ Test cases for product Model
 """
 #import logging
 import unittest
-import os
-import json
-from service.models import Product, DataValidationError, db
-from unittest.mock import MagicMock, patch
-from service import app
+#import os
+#import json
+from unittest.mock import patch
 from sqlalchemy.exc import InvalidRequestError
+from service.models import Product, DataValidationError, db
+from service import app
 
 ######################################################################
 # Product  M O D E L   T E S T   C A S E S
@@ -117,7 +117,7 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(len(products), 1)
         self.assertEqual(products[0].price, 9999.99)
         self.assertEqual(products[0].description, "White iPhone")
-    
+
     def test_update_a_product_commit_error(self):
         """ Update a product and raises an InvalidRequestError """
         product = Product(name="iPhone X", description="Black iPhone", category="Technology", price=999.99)
@@ -146,11 +146,11 @@ class TestProductModel(unittest.TestCase):
     def test_find_product(self):
         """ Find a Product by ID """
         Product(name="iPhone X", description="Black iPhone", category="Technology", price=999.99).create()
-        tv = Product(name="TV", description="Black Sony TV", category="Technology", price=1999.99)
-        tv.create()
-        product = Product.find(tv.id)
+        t_v = Product(name="TV", description="Black Sony TV", category="Technology", price=1999.99)
+        t_v.create()
+        product = Product.find(t_v.id)
         self.assertIsNot(product, None)
-        self.assertEqual(product.id, tv.id)
+        self.assertEqual(product.id, t_v.id)
         self.assertEqual(product.name, "TV")
         self.assertEqual(product.description, "Black Sony TV")
         self.assertEqual(product.category, "Technology")
@@ -204,7 +204,7 @@ class TestProductModel(unittest.TestCase):
         # delete the product and make sure it isn't in the database
         product.delete()
         self.assertEqual(len(Product.all()), 0)
-    
+
     def test_delete_a_product_commit_error(self):
         """ Delete a Product """
         product = Product(name="iPhone X", description="Black iPhone", category="Technology", price=999.99)
