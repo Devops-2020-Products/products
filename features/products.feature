@@ -138,10 +138,4 @@ Scenario: Delete a Product
     And I press the "Clear" button
     And I paste the "ID" field
     And I press the "Delete" button
-    Then the "ID" field should be empty
-    And I should see the message "Product has been Deleted!"
-    When I paste the "ID" field
-    And I press the "Retrieve" button
-    Then I should not see "White Bread" in the results
-
-
+    Then I should see the message "Product has been Deleted!"
