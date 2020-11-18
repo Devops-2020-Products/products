@@ -22,6 +22,9 @@ $(function () {
         $("#product_description").val("");
         $("#product_price").val("");
         $("#product_price_range").val("");
+        $("#product_search_name").val("");
+        $("#product_search_category").val("");
+        $("#product_search_description").val("");
     }
 
     // Updates the flash message area
@@ -203,9 +206,9 @@ $(function () {
 
     $("#search-btn").click(function () {
 
-        var name = $("#search_product_name").val();
-        var description = $("#search_product_description").val();
-        var category = $("#search_product_category").val();
+        var name = $("#product_search_name").val();
+        var description = $("#product_search_description").val();
+        var category = $("#product_search_category").val();
         var price_range = $("#product_price_range").val();
         var flag = 0;
 
