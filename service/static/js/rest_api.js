@@ -162,12 +162,13 @@ $(function () {
 
     $("#purchase-btn").click(function () {
 
-        var product_id = $("#product_id").val();
+        var product_id = $("#purchase_product_id").val();
+        var user_id = $("#user_id").val();
         var product_amount = $("#product_amount").val();
         
         var data = {
             "amount": product_amount,
-            "shopcart_id": None
+            "user_id": user_id
         };
 
         var ajax = $.ajax({
@@ -202,9 +203,9 @@ $(function () {
 
     $("#search-btn").click(function () {
 
-        var name = $("#product_name").val();
-        var description = $("#product_description").val();
-        var category = $("#product_category").val();
+        var name = $("#search_product_name").val();
+        var description = $("#search_product_description").val();
+        var category = $("#search_product_category").val();
         var price_range = $("#product_price_range").val();
         var flag = 0;
 
