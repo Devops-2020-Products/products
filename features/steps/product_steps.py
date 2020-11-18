@@ -143,8 +143,3 @@ def step_impl(context, element_name, text_string):
     )
     element.clear()
     element.send_keys(text_string)
-
-@then('I should see "{message}" in the return message')
-def step_impl(context, message):
-    element = context.driver.find_element_by_id('flash_message')
-    expect(element.text).to_contain(message)

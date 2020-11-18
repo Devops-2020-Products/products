@@ -28,7 +28,9 @@ Scenario: Read a Product
     When I visit the "Home Page"
     And I set the "Search_Name" to "Samsung TV"
     And I press the "Search" button
-    And I copy the "ID" field
+    Then I should see "Tech" in the "Category" field
+    And I should see "52 inch Samsung TV" in the "Description" field
+    When I copy the "ID" field
     And I press the "Clear" button
     And I paste the "ID" field
     And I press the "Retrieve" button
@@ -136,6 +138,10 @@ Scenario: Delete a Product
     And I press the "Clear" button
     And I paste the "ID" field
     And I press the "Delete" button
-    Then I should see "Product has been Deleted!" in the return message
+    Then the "ID" field should be empty
+    And I should see the message "Product has been Deleted!"
+    When I paste the "ID" field
+    And I press the "Retrieve" button
+    Then I should not see "White Bread" in the results
 
 
