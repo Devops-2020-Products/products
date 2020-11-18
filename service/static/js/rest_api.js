@@ -124,11 +124,35 @@ $(function () {
         ajax.done(function(res){
             //alert(res.toSource())
             update_form_data(res)
+            $("#search_results").empty();
+            $("#search_results").append('<table class="table-striped" cellpadding="10">');
+            var header = '<tr>'
+            header += '<th style="width:10%">ID</th>'
+            header += '<th style="width:40%">Name</th>'
+            header += '<th style="width:40%">Description</th>'
+            header += '<th style="width:40%">Category</th>'
+            header += '<th style="width:10%">Price</th></tr>'
+            $("#search_results").append(header);
+            var row = "<tr><td>"+res.id+"</td><td>"+res.name+"</td><td>"+res.description+"</td><td>"+res.category+"</td><td>"+res.price+"</td></tr>";
+            $("#search_results").append(row);
+
+            $("#search_results").append('</table>');
             flash_message("Success")
         });
 
         ajax.fail(function(res){
             clear_form_data()
+            $("#search_results").empty();
+            $("#search_results").append('<table class="table-striped" cellpadding="10">');
+            var header = '<tr>'
+            header += '<th style="width:10%">ID</th>'
+            header += '<th style="width:40%">Name</th>'
+            header += '<th style="width:40%">Description</th>'
+            header += '<th style="width:40%">Category</th>'
+            header += '<th style="width:10%">Price</th></tr>'
+            $("#search_results").append(header);
+
+            $("#search_results").append('</table>');
             flash_message(res.responseJSON.message)
         });
 
