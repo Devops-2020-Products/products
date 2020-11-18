@@ -26,7 +26,7 @@ Scenario: Create a Product
 
 Scenario: Read a Product
     When I visit the "Home Page"
-    And I set the "Name" to "Samsung TV"
+    And I set the "Search_Name" to "Samsung TV"
     And I press the "Search" button
     And I copy the "ID" field
     And I press the "Clear" button
@@ -70,7 +70,7 @@ Scenario: Query Products by Price
 
 Scenario: Query Products by Name
     When I visit the "Home Page"
-    And I set the "Name" to "Samsung Galaxy 20"
+    And I set the "Search_Name" to "Samsung Galaxy 20"
     And I press the "Search" button
     Then I should see "Samsung Galaxy 20" in the results
     And I should not see "Samsung TV" in the results
@@ -83,7 +83,7 @@ Scenario: Query Products by Name
 
 Scenario: Query Products by Category
     When I visit the "Home Page"
-    And I set the "Category" to "Tech"
+    And I set the "Search_Category" to "Tech"
     And I press the "Search" button
     Then I should see "Samsung TV" in the results
     And I should see "Samsung Galaxy 20" in the results
@@ -96,7 +96,7 @@ Scenario: Query Products by Category
 
 Scenario: Query Products by Description
     When I visit the "Home Page"
-    And I set the "Description" to "Wonder Bread"
+    And I set the "Search_Description" to "Wonder Bread"
     And I press the "Search" button
     Then I should see "White Bread" in the results
     And I should not see "Samsung TV" in the results
@@ -109,7 +109,7 @@ Scenario: Query Products by Description
 
 Scenario: Update a Product
     When I visit the "Home Page"
-    And I set the "Name" to "White Bread"
+    And I set the "Search_Name" to "White Bread"
     And I press the "Search" button
     Then I should see "White Bread" in the "Name" field
     And I should see "Food" in the "Category" field
@@ -128,7 +128,7 @@ Scenario: Update a Product
     
 Scenario: Delete a Product
     When I visit the "Home Page"
-    And I set the "Name" to "White Bread"
+    And I set the "Search_Name" to "White Bread"
     And I press the "Search" button
     Then I should see "White Bread" in the "Name" field
     And I should see "Food" in the "Category" field

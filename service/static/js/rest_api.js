@@ -22,6 +22,9 @@ $(function () {
         $("#product_description").val("");
         $("#product_price").val("");
         $("#product_price_range").val("");
+        $("#product_search_name").val("");
+        $("#product_search_category").val("");
+        $("#product_search_description").val("");
     }
 
     // Updates the flash message area
@@ -162,13 +165,20 @@ $(function () {
 
     $("#purchase-btn").click(function () {
 
-        var product_id = $("#product_id").val();
+        var product_id = $("#purchase_product_id").val();
+        var user_id = $("#user_id").val();
+        var product_amount = $("#product_amount").val();
+        
+        var data = {
+            "amount": product_amount,
+            "user_id": user_id
+        };
 
         var ajax = $.ajax({
             type: "POST",
             url: "/products/" + product_id + "/purchase",
             contentType: "application/json",
-            data: '',
+            data: JSON.stringify(data),
         })
 
         ajax.done(function(res){
@@ -196,9 +206,9 @@ $(function () {
 
     $("#search-btn").click(function () {
 
-        var name = $("#product_name").val();
-        var description = $("#product_description").val();
-        var category = $("#product_category").val();
+        var name = $("#product_search_name").val();
+        var description = $("#product_search_description").val();
+        var category = $("#product_search_category").val();
         var price_range = $("#product_price_range").val();
         var flag = 0;
 
