@@ -7,6 +7,8 @@ psycopg2-binary==2.8.4
 # Runtime
 gunicorn==20.0.2
 honcho>=1.0.1
+flask-restplus==0.13.0
+Werkzeug==0.16.1
 
 # Code quality
 pylint>=2.4.1
