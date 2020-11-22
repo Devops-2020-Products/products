@@ -8,7 +8,9 @@ import os
 #import sys
 #import logging
 #import json
+import uuid
 import requests
+from functools import wraps
 from flask import Flask, jsonify, request, url_for, make_response, abort,render_template
 from flask_api import status  # HTTP Status Codes
 from werkzeug.exceptions import NotFound
@@ -16,12 +18,69 @@ from werkzeug.exceptions import NotFound
 # For this example we'll use SQLAlchemy, a popular ORM that supports a
 # variety of backends including SQLite, MySQL, and PostgreSQL
 #from flask_sqlalchemy import SQLAlchemy
+from flask_restplus import Api, Resource, fields, reqparse, inputs
 from service.models import Product, DataValidationError
 
 # Import Flask application
 from . import app
 
 SHOPCART_ENDPOINT = os.getenv('SHOPCART_ENDPOINT', 'http://localhost:5000/shopcarts')
+
+# authorizations = {
+#     'apikey': {
+#         'type': 'apiKey',
+#         'in': 'header',
+#         'name': 'X-Api-Key'
+#     }
+# }
+
+######################################################################
+# Configure Swagger before initializing it
+######################################################################
+api = Api(app,
+          version='1.0.0',
+          title='Product REST API Service',
+          description='This is a Product server.',
+          default='products',
+          default_label='Product operations',
+          doc='/apidocs',
+          # authorizations=authorizations,
+          prefix='/api'
+          )
+
+# Define the model so that the docs reflect what can be sent
+product_model = api.model('Product', {
+    'id': fields.Integer(readOnly=True,
+                         description='The unique id assigned internally by service'),
+    'name': fields.String(required=True,
+                          description='The name of the Product'),
+    'category': fields.String(required=True,
+                              description='The category of Product (e.g., food, technology, etc.)'),
+    'description': fields.String(required=True,
+                              description='The description of the Product'),                         
+    'price': fields.Float(required=True,
+                                description='The price of the Product')
+})
+
+create_model = api.model('Product', {
+    'name': fields.String(required=True,
+                          description='The name of the Product'),
+    'category': fields.String(required=True,
+                              description='The category of Product (e.g., food, technology, etc.)'),
+    'description': fields.String(required=True,
+                              description='The description of the Product'),                         
+    'price': fields.Float(required=True,
+                                description='The price of the Product')
+})
+
+# query string arguments
+product_args = reqparse.RequestParser()
+product_args.add_argument('name', type=str, required=False, help='List Products by name')
+product_args.add_argument('category', type=str, required=False, help='List Products by category')
+product_args.add_argument('description', type=str, required=False, help='List Products by description')
+product_args.add_argument('price', type=float, required=False, help='List Pets by price or price range')
+
+
 ######################################################################
 # Error Handlers
 ######################################################################
@@ -56,19 +115,42 @@ def not_found(error):
     )
 
 
-@app.errorhandler(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
-def mediatype_not_supported(error):
-    """ Handles unsupported media requests with 415_UNSUPPORTED_MEDIA_TYPE """
-    message = str(error)
-    app.logger.warning(message)
-    return (
-        jsonify(
-            status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            error="Unsupported media type",
-            message=message,
-        ),
-        status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-    )
+# @app.errorhandler(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+# def mediatype_not_supported(error):
+#     """ Handles unsupported media requests with 415_UNSUPPORTED_MEDIA_TYPE """
+#     message = str(error)
+#     app.logger.warning(message)
+#     return (
+#         jsonify(
+#             status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+#             error="Unsupported media type",
+#             message=message,
+#         ),
+#         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+#     )
+
+######################################################################
+# Authorization Decorator
+######################################################################
+# def token_required(f):
+#     @wraps(f)
+#     def decorated(*args, **kwargs):
+#         token = None
+#         if 'X-Api-Key' in request.headers:
+#             token = request.headers['X-Api-Key']
+
+#         if app.config.get('API_KEY') and app.config['API_KEY'] == token:
+#             return f(*args, **kwargs)
+#         else:
+#             return {'message': 'Invalid or missing token'}, 401
+#     return decorated
+
+######################################################################
+# Function to generate a random API key (good for testing)
+######################################################################
+# def generate_apikey():
+#     """ Helper function used when testing API keys """
+#     return uuid.uuid4().hex
 
 ######################################################################
 # GET INDEX
@@ -78,6 +160,118 @@ def index():
     """ Root URL response """
     return render_template('index.html')
 
+@api.route('/products/<product_id>')
+@api.param('product_id', 'The Product identifier')
+class ProductResource(Resource):
+    """
+    ProductResource class
+    Allows the manipulation of a single Product
+    GET /product{id} - Returns a Product with the id
+    PUT /product{id} - Update a Product with the id
+    DELETE /product{id} -  Deletes a Product with the id
+    """
+
+    #------------------------------------------------------------------
+    # RETRIEVE A PRODUCT
+    #------------------------------------------------------------------
+    @api.doc('get_products')
+    @api.response(404, 'Product not found')
+    @api.marshal_with(product_model)
+    def get(self,product_id):
+        """
+        Retrieve a product
+        This endpoint will return a product based on its id
+        """
+        app.logger.info("Request for product with id: %s", product_id)
+        product = Product.find(product_id)
+        if not product:
+            api.abort(status.HTTP_404_NOT_FOUND, "Product with id '{}' was not found.".format(product_id))
+
+        app.logger.info("Returning product: %s", product.name)
+        return product.serialize(), status.HTTP_200_OK
+
+    #------------------------------------------------------------------
+    # UPDATE AN EXISTING PRODUCT
+    #------------------------------------------------------------------
+    @api.doc('update_pets')
+    @api.response(404, 'Pet not found')
+    @api.response(400, 'The posted Pet data was not valid')
+    @api.expect(product_model)
+    @api.marshal_with(product_model)
+    def put(self,product_id):
+        """
+        Update a product
+        This endpoint will update a product based on the request body
+        """
+        app.logger.info("Request to update product with id: %s", product_id)
+        check_content_type("application/json")
+        product = Product.find(product_id)
+        if not product:
+            api.abort(status.HTTP_404_NOT_FOUND, "Product with id '{}' was not found.".format(product_id))
+        app.logger.debug('Payload = %s', api.payload)
+        product_name = product.name
+        product_description = product.description
+        product_category = product.category
+        product_price = product.price
+        data = api.payload
+        product.deserialize(data)
+        product.id = product_id
+        if product.name == "":
+            product.name = product_name
+        if product.description == "":
+            product.description = product_description
+        if product.price == "":
+            product.price = product_price
+        if product.category == "":
+            product.category = product_category
+        product.update()
+        app.logger.info("Product with ID [%s] updated.", product.id)
+        return product.serialize(), status.HTTP_200_OK
+
+    #------------------------------------------------------------------
+    # DELETE A PRODUCT
+    #------------------------------------------------------------------
+    @api.doc('delete_products')
+    @api.response(204, 'Product deleted')
+    def delete(self,product_id):
+        """
+        Delete a Product
+        This endpoint will delete a product based the id specified in the path
+        """
+        app.logger.info("Request to delete product with id: %s", product_id)
+        product = Product.find(product_id)
+        if product:
+            product.delete()
+        app.logger.info("Product with ID [%s] delete complete.", product_id)
+        return '', status.HTTP_204_NO_CONTENT
+
+@api.route('/products', strict_slashes=False)
+class ProductCollection(Resource):
+
+    ######################################################################
+    # ADD A NEW PRODUCT
+    ######################################################################
+    @api.doc('create_products')
+    @api.expect(create_model) 
+    @api.response(400, 'The posted data was not valid')
+    @api.response(201, 'Product created successfully')
+    @api.marshal_with(product_model, code=201)
+    def post(self):
+        """
+        Creates a Products
+        This endpoint will create a Product based the data in the body that is posted
+        """
+        app.logger.info("Request to create a product")
+        check_content_type("application/json")
+        product = Product()
+        product.deserialize(api.payload)
+        if product.id == "" or product.name == "" or product.description == "" or product.price == "" or product.category == "":
+            return request_validation_error("Fields cannot be empty")
+        product.create()
+        app.logger.info("Product with ID [%s] created.", product.id)
+        location_url = api.url_for(ProductResource, product_id=product.id, _external=True)
+        return product.serialize(), status.HTTP_201_CREATED, {'Location': location_url}
+        
 ######################################################################
 # LIST ALL PRODUCTS
 ######################################################################
@@ -125,99 +319,6 @@ def query_product_by_price():
     results = [product.serialize() for product in products]
     app.logger.info("Returning %d products", len(results))
     return make_response(jsonify(results), status.HTTP_200_OK)
-
-######################################################################
-# ADD A NEW PRODUCT
-######################################################################
-@app.route("/products", methods=["POST"])
-def create_products():
-    """
-    Creates a Products
-    This endpoint will create a Product based the data in the body that is posted
-    """
-    app.logger.info("Request to create a product")
-    check_content_type("application/json")
-    product = Product()
-    product.deserialize(request.get_json())
-    if product.id == "" or product.name == "" or product.description == "" or product.price == "" or product.category == "":
-        return request_validation_error("Fields cannot be empty")
-    product.create()
-    message = product.serialize()
-
-    location_url = url_for("get_products", product_id=product.id, _external=True)
-
-    app.logger.info("Product with ID [%s] created.", product.id)
-
-    return make_response(jsonify(message), status.HTTP_201_CREATED, {"Location": location_url})
-
-######################################################################
-# READ A PRODUCT
-######################################################################
-@app.route("/products/<int:product_id>", methods=["GET"])
-def get_products(product_id):
-    """
-    Read a product
-    This endpoint will return a product based on its id
-    """
-    app.logger.info("Request for product with id: %s", product_id)
-    product = Product.find(product_id)
-    if not product:
-        raise NotFound("Product with id '{}' was not found.".format(product_id))
-
-    app.logger.info("Returning product: %s", product.name)
-    return make_response(jsonify(product.serialize()), status.HTTP_200_OK)
-
-######################################################################
-# DELETE A PRODUCT
-######################################################################
-
-@app.route("/products/<int:product_id>", methods=["DELETE"])
-
-def delete_products(product_id):
-    """
-    Delete a Product
-    This endpoint will delete a product based the id specified in the path
-    """
-    app.logger.info("Request to delete product with id: %s", product_id)
-    product = Product.find(product_id)
-    if product:
-        product.delete()
-
-    app.logger.info("Product with ID [%s] delete complete.", product_id)
-    return make_response("", status.HTTP_204_NO_CONTENT)
-
-######################################################################
-# UPDATE AN EXISTING PRODUCT
-######################################################################
-@app.route("/products/<int:product_id>", methods=["PUT"])
-def update_products(product_id):
-    """
-    Update a product
-    This endpoint will update a product based on the request body
-    """
-    app.logger.info("Request to update product with id: %s", product_id)
-    check_content_type("application/json")
-    product = Product.find(product_id)
-    if not product:
-        raise NotFound("Product with id '{}' was not found.".format(product_id))
-    product_name = product.name
-    product_description = product.description
-    product_category = product.category
-    product_price = product.price
-    product.deserialize(request.get_json())
-    product.id = product_id
-    if product.name == "":
-        product.name = product_name
-    if product.description == "":
-        product.description = product_description
-    if product.price == "":
-        product.price = product_price
-    if product.category == "":
-        product.category = product_category
-    product.update()
-
-    app.logger.info("Product with ID [%s] updated.", product.id)
-    return make_response(jsonify(product.serialize()), status.HTTP_200_OK)
 
 ######################################################################
 # PURCHASE AN EXISTING PRODUCT
