@@ -36,9 +36,10 @@ class TestProductServer(TestCase):
 
     def setUp(self):
         """ This runs before each test """
+        self.app = app.test_client()
         db.drop_all()  # clean up the last tests
         db.create_all()  # create new tables
-        self.app = app.test_client()
+        
 
     def tearDown(self):
         """ This runs after each test """
@@ -51,7 +52,7 @@ class TestProductServer(TestCase):
         for _ in range(count):
             test_product = ProductFactory()
             resp = self.app.post(
-                "/products", json=test_product.serialize(), content_type="application/json"
+                "/api/products", json=test_product.serialize(), content_type="application/json"
             )
             self.assertEqual(
                 resp.status_code, status.HTTP_201_CREATED, "Could not create test product"
@@ -75,7 +76,7 @@ class TestProductServer(TestCase):
         test_product = ProductFactory()
         logging.debug(test_product)
         resp = self.app.post(
-            "/products", json=test_product.serialize(), content_type="application/json"
+            "/api/products", json=test_product.serialize(), content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
 
@@ -114,7 +115,7 @@ class TestProductServer(TestCase):
         test_product = ProductFactory()
         logging.debug(test_product)
         resp = self.app.post(
-            "/products", json=test_product.serialize(), content_type="text/plain"
+            "/api/products", json=test_product.serialize(), content_type="text/plain"
         )
         self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
@@ -124,7 +125,7 @@ class TestProductServer(TestCase):
         logging.debug(test_product)
         test_product.category = ""
         resp = self.app.post(
-            "/products", json=test_product.serialize(), content_type="application/json"
+            "/api/products", json=test_product.serialize(), content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -133,7 +134,7 @@ class TestProductServer(TestCase):
         # get the id of a product
         test_product = self._create_products(1)[0]
         resp = self.app.get(
-            "/products/{}".format(test_product.id), content_type="application/json"
+            "/api/products/{}".format(test_product.id), content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
@@ -141,20 +142,19 @@ class TestProductServer(TestCase):
 
     def test_get_product_not_found(self):
         """ Get a product that's not found """
-        resp = self.app.get("/products/0")
+        resp = self.app.get("/api/products/0")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_delete_a_product(self):
         """ Delete a Product """
         test_product = self._create_products(1)[0]
         resp = self.app.delete(
-            "/products/{}".format(test_product.id), content_type="application/json"
-        )
+            "/api/products/{}".format(test_product.id), content_type="application/json")
         self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(len(resp.data), 0)
         # make sure they are deleted
         resp = self.app.get(
-            "/products/{}".format(test_product.id), content_type="application/json"
+            "/api/products/{}".format(test_product.id), content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -166,18 +166,16 @@ class TestProductServer(TestCase):
         test_product_description = test_product.description
         test_product_price = test_product.price
         resp = self.app.post(
-            "/products", json=test_product.serialize(), content_type="application/json"
-        )
+            "/api/products", json=test_product.serialize(), content_type="application/json")
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
 
         # update the product
         new_product = resp.get_json()
         new_product["category"] = "Education"
         resp = self.app.put(
-            "/products/{}".format(new_product["id"]),
+            "/api/products/{}".format(new_product["id"]),
             json=new_product,
-            content_type="application/json",
-        )
+            content_type="application/json")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         updated_product = resp.get_json()
         self.assertEqual(updated_product["category"], "Education")
@@ -186,10 +184,10 @@ class TestProductServer(TestCase):
         part_product = resp.get_json()
         part_product["category"] = ""
         resp = self.app.put(
-            "/products/{}".format(part_product["id"]),
+            "/api/products/{}".format(part_product["id"]),
             json=part_product,
-            content_type="application/json",
-        )
+            content_type="application/json")
+
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         updated_product = resp.get_json()
         self.assertEqual(updated_product["category"], "Education")
@@ -197,10 +195,9 @@ class TestProductServer(TestCase):
         part_product = resp.get_json()
         part_product["name"] = ""
         resp = self.app.put(
-            "/products/{}".format(part_product["id"]),
+            "/api/products/{}".format(part_product["id"]),
             json=part_product,
-            content_type="application/json",
-        )
+            content_type="application/json")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         updated_product = resp.get_json()
         self.assertEqual(updated_product["name"], test_product_name)
@@ -208,10 +205,9 @@ class TestProductServer(TestCase):
         part_product = resp.get_json()
         part_product["description"] = ""
         resp = self.app.put(
-            "/products/{}".format(part_product["id"]),
+            "/api/products/{}".format(part_product["id"]),
             json=part_product,
-            content_type="application/json",
-        )
+            content_type="application/json")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         updated_product = resp.get_json()
         self.assertEqual(updated_product["description"], test_product_description)
@@ -219,10 +215,9 @@ class TestProductServer(TestCase):
         part_product = resp.get_json()
         part_product["price"] = ""
         resp = self.app.put(
-            "/products/{}".format(part_product["id"]),
+            "/api/products/{}".format(part_product["id"]),
             json=part_product,
-            content_type="application/json",
-        )
+            content_type="application/json")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         updated_product = resp.get_json()
         self.assertEqual(updated_product["price"], test_product_price)
@@ -231,10 +226,9 @@ class TestProductServer(TestCase):
         """ Update a product that's not found """
         test_product = ProductFactory()
         resp = self.app.put(
-            "/products/0",
+            "/api/products/0",
             json=test_product.serialize(),
-            content_type="application/json",
-        )
+            content_type="application/json")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_update_product_bad_request(self):
@@ -242,18 +236,16 @@ class TestProductServer(TestCase):
         # create a product to update
         test_product = ProductFactory()
         resp = self.app.post(
-            "/products", json=test_product.serialize(), content_type="application/json"
-        )
+            "/api/products", json=test_product.serialize(), content_type="application/json")
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
 
         # create an update request with bad request body
         new_product = resp.get_json()
         new_product.pop("name")
         resp = self.app.put(
-            "/products/{}".format(new_product["id"]),
+            "/api/products/{}".format(new_product["id"]),
             json=new_product,
-            content_type="application/json",
-        )
+            content_type="application/json")
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_get_product_list(self):
