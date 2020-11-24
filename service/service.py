@@ -78,7 +78,7 @@ product_args = reqparse.RequestParser()
 product_args.add_argument('name', type=str, required=False, help='List Products by name')
 product_args.add_argument('category', type=str, required=False, help='List Products by category')
 product_args.add_argument('description', type=str, required=False, help='List Products by description')
-product_args.add_argument('price', type=float, required=False, help='List Pets by price or price range')
+product_args.add_argument('price', type=float, required=False, help='List Products by price or price range')
 
 
 ######################################################################
@@ -193,9 +193,9 @@ class ProductResource(Resource):
     #------------------------------------------------------------------
     # UPDATE AN EXISTING PRODUCT
     #------------------------------------------------------------------
-    @api.doc('update_pets')
-    @api.response(404, 'Pet not found')
-    @api.response(400, 'The posted Pet data was not valid')
+    @api.doc('update_products')
+    @api.response(404, 'Product not found')
+    @api.response(400, 'The posted Product data was not valid')
     @api.expect(product_model)
     @api.marshal_with(product_model)
     def put(self,product_id):

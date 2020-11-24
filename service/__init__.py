@@ -15,7 +15,7 @@ app.config.from_object('config')
 
 
 app.config['API_KEY'] = os.getenv('API_KEY')
-
+app.config['ERROR_404_HELP'] = False
 
 # Import the rutes After the Flask app is created
 from service import service, models

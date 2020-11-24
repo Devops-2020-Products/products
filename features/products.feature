@@ -40,11 +40,11 @@ Scenario: Read a Product
     And I should see "52 inch Samsung TV" in the "Description" field
     And I should see "3999.99" in the "Price" field
 
-# Scenario: Read a None-Existing Product
-#     When I visit the "Home Page"
-#     And I set the "ID" to "2147483647"
-#     And I press the "Retrieve" button
-#     Then I should see the message "404 Not Found: Product with id '2147483647' was not found."
+Scenario: Read a None-Existing Product
+    When I visit the "Home Page"
+    And I set the "ID" to "-1"
+    And I press the "Retrieve" button
+    Then I should see the message "Product with id '-1' was not found."
 
 Scenario: List All Products
     When I visit the "Home Page"
