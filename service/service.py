@@ -339,12 +339,13 @@ def purchase_products(product_id):
     user_id = request_body['user_id']
     header = {'Content-Type': 'application/json'}
     resp = requests.get('{}?user_id={}'.format(SHOPCART_ENDPOINT,user_id))
+    #print('{}?user_id={}'.format(SHOPCART_ENDPOINT,user_id))
     r_json = resp.json()
     if len(r_json) == 0:
         info_json = {"user_id": user_id}
         create_shopcart_resp = create_shopcart(SHOPCART_ENDPOINT,header,info_json)
         if create_shopcart_resp.status_code == 201:
-            message = create_shopcart.json()
+            message = create_shopcart_resp.json()
             shopcart_id = message['id']
             new_item = {}
             new_item["sku"] = product_id
