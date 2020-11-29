@@ -143,3 +143,12 @@ def step_impl(context, element_name, text_string):
     )
     element.clear()
     element.send_keys(text_string)
+
+@when('I paste the "{element_name}" field to "{element2_name}"')
+def step_impl(context, element_name, element2_name):
+    element2_id = ID_PREFIX + element2_name.lower()
+    element = WebDriverWait(context.driver, WAIT_SECONDS).until(
+        expected_conditions.presence_of_element_located((By.ID, element2_id))
+    )
+    element.clear()
+    element.send_keys(context.clipboard)

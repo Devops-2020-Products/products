@@ -189,8 +189,8 @@ $(function () {
 
     $("#purchase-btn").click(function () {
 
-        var product_id = $("#purchase_product_id").val();
-        var user_id = $("#user_id").val();
+        var product_id = $("#product_purchase_id").val();
+        var user_id = $("#product_user_id").val();
         var product_amount = $("#product_amount").val();
         
         var data = {
