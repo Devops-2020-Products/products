@@ -24,7 +24,7 @@ from service.models import Product, DataValidationError
 # Import Flask application
 from . import app
 
-SHOPCART_ENDPOINT = os.getenv('SHOPCART_ENDPOINT', 'http://localhost:5000/shopcarts')
+SHOPCART_ENDPOINT = os.getenv('SHOPCART_ENDPOINT', 'https://nyu-shopcart-service-f20.us-south.cf.appdomain.cloud/api/shopcarts')
 
 # authorizations = {
 #     'apikey': {
@@ -338,7 +338,7 @@ def purchase_products(product_id):
     amount_update = request_body['amount']
     user_id = request_body['user_id']
     header = {'Content-Type': 'application/json'}
-    resp = requests.get('{}?user_id={}'.format(SHOPCART_ENDPOINT,user_id),headers = header)
+    resp = requests.get('{}?user_id={}'.format(SHOPCART_ENDPOINT,user_id))
     r_json = resp.json()
     if len(r_json) == 0:
         info_json = {"user_id": user_id}
@@ -347,15 +347,11 @@ def purchase_products(product_id):
             message = create_shopcart.json()
             shopcart_id = message['id']
             new_item = {}
-            new_item["id"] = None
-            new_item["sid"] = shopcart_id
             new_item["sku"] = product_id
             new_item["amount"] = amount_update
             product = product.serialize()
             new_item["name"] = product["name"]
             new_item["price"] = product["price"]
-            new_item["create_time"] = None
-            new_item["update_time"] = None
             add_into_shopcart = add_item_to_shopcart(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id),header,new_item)
             if add_into_shopcart.status_code == 201:
                 return make_response("Product successfully added into the shopping cart", status.HTTP_200_OK)
@@ -363,14 +359,11 @@ def purchase_products(product_id):
         return make_response("Cannot create shopcart so cannot add product into shopping cart", status.HTTP_400_BAD_REQUEST)
     shopcart_id = r_json[0]['id']
     new_item = {}
-    new_item["sid"] = shopcart_id
     new_item["sku"] = product_id
     new_item["amount"] = amount_update
     product = product.serialize()
     new_item["name"] = product["name"]
     new_item["price"] = product["price"]
-    new_item["create_time"] = None
-    new_item["update_time"] = None
     add_into_shopcart = add_item_to_shopcart(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id),header,new_item)
     if add_into_shopcart.status_code == 201:
         return make_response("Product successfully added into the shopping cart", status.HTTP_200_OK)

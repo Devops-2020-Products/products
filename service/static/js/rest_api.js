@@ -200,7 +200,7 @@ $(function () {
 
         var ajax = $.ajax({
             type: "POST",
-            url: "/api/products/" + product_id + "/purchase",
+            url: "/products/" + product_id + "/purchase",
             contentType: "application/json",
             data: JSON.stringify(data),
         })
