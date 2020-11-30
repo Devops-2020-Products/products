@@ -54,15 +54,15 @@ The flask base service is in the ```service``` directory and its tests are in th
 
  |                 URL                 | HTTP Method |                         Description                          |
 | :---------------------------------: | :---------: | :----------------------------------------------------------: |
-|              /products              |   **GET**   |              Returns a list all of the products              |
-|           /products/{id}            |   **GET**   |             Returns the product with a given id              |
-|              /products              |  **POST**   | creates a new product record in the database with the request body consisting of all the database fields needed |
-|           /products/{id}            |   **PUT**   | updates a product record in the database with the request body consisting of all the database fields needed |
-|           /products/{id}            | **DELETE**  |           deletes a product record in the database           |
-|    /products?category={category}    |   **GET**   |        query the database by the category of products        |
-|        /products?name={name}        |   **GET**   |          query the database by the name of products          |
-| /products?description={description} |   **GET**   |      query the database by the description of products       |
-|           /products/price           |   **GET**   |      query the database by the price range of products       |
+|              /api/products              |   **GET**   |              Returns a list all of the products              |
+|           /api/products/{id}            |   **GET**   |             Returns the product with a given id              |
+|              /api/products              |  **POST**   | creates a new product record in the database with the request body consisting of all the database fields needed |
+|           /api/products/{id}            |   **PUT**   | updates a product record in the database with the request body consisting of all the database fields needed |
+|           /api/products/{id}            | **DELETE**  |           deletes a product record in the database           |
+|    /api/products?category={category}    |   **GET**   |        query the database by the category of products        |
+|        /api/products?name={name}        |   **GET**   |          query the database by the name of products          |
+| /api/products?description={description} |   **GET**   |      query the database by the description of products       |
+|           /api/products?minimum={minimum}&maximum={maximum}           |   **GET**   |      query the database by the price range of products       |
 |       /products/{id}/purchase       |  **POST**   | purchases the product with the corresponding id by adding it to user's shopping cart with the request body consisting of user_id, shopcart_id, and the amount you wish to purchase. |
 
 

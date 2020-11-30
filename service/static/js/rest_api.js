@@ -116,9 +116,7 @@ $(function () {
 
         var ajax = $.ajax({
             type: "GET",
-            url: "/api/products/" + product_id,
-            contentType: "application/json",
-            data: ''
+            url: "/api/products/" + product_id
         })
 
         ajax.done(function(res){
@@ -234,7 +232,6 @@ $(function () {
         var description = $("#product_search_description").val();
         var category = $("#product_search_category").val();
         var price_range = $("#product_price_range").val();
-        var flag = 0;
 
         var queryString = "";
 
@@ -253,27 +250,12 @@ $(function () {
             var price_max = prices[1];
             queryString += 'minimum=' + price_min;
             queryString += '&maximum=' + price_max;
-            flag = 1
         }
 
-        if (flag===0) {
-
-            var ajax = $.ajax({
-                type: "GET",
-                url: "/products?" + queryString,
-                contentType: "application/json",
-                data: ''
-            })
-        }
-        else{
-            var ajax = $.ajax({
-                type: "GET",
-                url: "/products/price?" + queryString,
-                contentType: "application/json",
-                data: ''
-            })
-            flag = 0
-        }
+        var ajax = $.ajax({
+            type: "GET",
+            url: "/api/products?" + queryString
+        })
 
         ajax.done(function(res){
             //alert(res.toSource())

@@ -8,31 +8,21 @@ import os
 #import sys
 #import logging
 #import json
-import uuid
 import requests
-from functools import wraps
-from flask import Flask, jsonify, request, url_for, make_response, abort,render_template
+from flask import jsonify, request, make_response, abort, render_template
 from flask_api import status  # HTTP Status Codes
 from werkzeug.exceptions import NotFound
 
 # For this example we'll use SQLAlchemy, a popular ORM that supports a
 # variety of backends including SQLite, MySQL, and PostgreSQL
 #from flask_sqlalchemy import SQLAlchemy
-from flask_restplus import Api, Resource, fields, reqparse, inputs
+from flask_restplus import Api, Resource, fields, reqparse
 from service.models import Product, DataValidationError
 
 # Import Flask application
 from . import app
 
 SHOPCART_ENDPOINT = os.getenv('SHOPCART_ENDPOINT', 'https://nyu-shopcart-service-f20.us-south.cf.appdomain.cloud/api/shopcarts')
-
-# authorizations = {
-#     'apikey': {
-#         'type': 'apiKey',
-#         'in': 'header',
-#         'name': 'X-Api-Key'
-#     }
-# }
 
 ######################################################################
 # Configure Swagger before initializing it
@@ -44,41 +34,37 @@ api = Api(app,
           default='products',
           default_label='Product operations',
           doc='/apidocs',
-          # authorizations=authorizations,
           prefix='/api'
           )
 
 # Define the model so that the docs reflect what can be sent
-product_model = api.model('Product', {
-    'id': fields.Integer(readOnly=True,
-                         description='The unique id assigned internally by service'),
-    'name': fields.String(required=True,
-                          description='The name of the Product'),
-    'category': fields.String(required=True,
-                              description='The category of Product (e.g., food, technology, etc.)'),
-    'description': fields.String(required=True,
-                              description='The description of the Product'),                         
-    'price': fields.Float(required=True,
-                                description='The price of the Product')
-})
-
 create_model = api.model('Product', {
     'name': fields.String(required=True,
                           description='The name of the Product'),
     'category': fields.String(required=True,
                               description='The category of Product (e.g., food, technology, etc.)'),
     'description': fields.String(required=True,
-                              description='The description of the Product'),                         
+                                 description='The description of the Product'),
     'price': fields.Float(required=True,
-                                description='The price of the Product')
+                          description='The price of the Product')
 })
+
+product_model = api.inherit(
+    'ProductModel',
+    create_model,
+    {
+        'id': fields.String(readOnly=True,
+                            description='The unique id assigned internally by service'),
+    }
+)
 
 # query string arguments
 product_args = reqparse.RequestParser()
 product_args.add_argument('name', type=str, required=False, help='List Products by name')
 product_args.add_argument('category', type=str, required=False, help='List Products by category')
 product_args.add_argument('description', type=str, required=False, help='List Products by description')
-product_args.add_argument('price', type=float, required=False, help='List Products by price or price range')
+product_args.add_argument('minimum', type=float, required=False, help='The minimum of the query price range')
+product_args.add_argument('maximum', type=float, required=False, help='The maximum of the query price range')
 
 
 ######################################################################
@@ -130,29 +116,6 @@ def not_found(error):
 #     )
 
 ######################################################################
-# Authorization Decorator
-######################################################################
-# def token_required(f):
-#     @wraps(f)
-#     def decorated(*args, **kwargs):
-#         token = None
-#         if 'X-Api-Key' in request.headers:
-#             token = request.headers['X-Api-Key']
-
-#         if app.config.get('API_KEY') and app.config['API_KEY'] == token:
-#             return f(*args, **kwargs)
-#         else:
-#             return {'message': 'Invalid or missing token'}, 401
-#     return decorated
-
-######################################################################
-# Function to generate a random API key (good for testing)
-######################################################################
-# def generate_apikey():
-#     """ Helper function used when testing API keys """
-#     return uuid.uuid4().hex
-
-######################################################################
 # GET INDEX
 ######################################################################
 @app.route("/")
@@ -177,7 +140,7 @@ class ProductResource(Resource):
     @api.doc('get_products')
     @api.response(404, 'Product not found')
     @api.marshal_with(product_model)
-    def get(self,product_id):
+    def get(self, product_id):
         """
         Retrieve a product
         This endpoint will return a product based on its id
@@ -198,7 +161,7 @@ class ProductResource(Resource):
     @api.response(400, 'The posted Product data was not valid')
     @api.expect(product_model)
     @api.marshal_with(product_model)
-    def put(self,product_id):
+    def put(self, product_id):
         """
         Update a product
         This endpoint will update a product based on the request body
@@ -233,7 +196,7 @@ class ProductResource(Resource):
     #------------------------------------------------------------------
     @api.doc('delete_products')
     @api.response(204, 'Product deleted')
-    def delete(self,product_id):
+    def delete(self, product_id):
         """
         Delete a Product
         This endpoint will delete a product based the id specified in the path
@@ -247,19 +210,19 @@ class ProductResource(Resource):
 
 @api.route('/products', strict_slashes=False)
 class ProductCollection(Resource):
-
+    """ Handles all interactions with collections of Products """
     ######################################################################
     # ADD A NEW PRODUCT
     ######################################################################
     @api.doc('create_products')
-    @api.expect(create_model) 
+    @api.expect(create_model)
     @api.response(400, 'The posted data was not valid')
     @api.response(201, 'Product created successfully')
     @api.marshal_with(product_model, code=201)
     def post(self):
         """
-        Creates a Products
-        This endpoint will create a Product based the data in the body that is posted
+        Creates a Product
+        This endpoint will create a Product based on the data in the body that is posted
         """
         app.logger.info("Request to create a product")
         check_content_type("application/json")
@@ -271,54 +234,41 @@ class ProductCollection(Resource):
         app.logger.info("Product with ID [%s] created.", product.id)
         location_url = api.url_for(ProductResource, product_id=product.id, _external=True)
         return product.serialize(), status.HTTP_201_CREATED, {'Location': location_url}
-        
-######################################################################
-# LIST ALL PRODUCTS
-######################################################################
-@app.route("/products", methods=["GET"])
-def list_products():
-    """ Returns all of the Products """
-    app.logger.info("Request for product list")
-    products = []
 
-    category = request.args.get("category")
-    name = request.args.get("name")
-    description = request.args.get("description")
+    ######################################################################
+    # LIST ALL PRODUCTS OR QUERY PRODUCTS
+    ######################################################################
+    @api.doc('list_products')
+    @api.expect(product_args, validate=True)
+    @api.marshal_list_with(product_model)
+    @app.route("/products", methods=["GET"])
+    def get(self):
+        """ Returns all of the queried Products """
+        app.logger.info("Request for product list")
+        products = []
+        args = product_args.parse_args()
+        category = args.get('category')
+        name = args.get('name')
+        description = args.get('description')
+        minimum = args.get('minimum')
+        maximum = args.get('maximum')
 
-    if category:
-        products = Product.find_by_category(category)
-    elif name:
-        products = Product.find_by_name(name)
-    elif description:
-        products = Product.find_by_description(description)
-    else:
-        products = Product.all()
+        if category is not None:
+            products = Product.find_by_category(category)
+        elif name is not None:
+            products = Product.find_by_name(name)
+        elif description is not None:
+            products = Product.find_by_description(description)
+        elif minimum is None and maximum is None:
+            products = Product.all()
+        else:
+            if maximum is None or minimum is None or maximum == "" or minimum == "":
+                return request_validation_error("Minimum and Maximum cannot be empty")
+            products = Product.query_by_price(minimum, maximum)
 
-    results = [product.serialize() for product in products]
-    app.logger.info("Returning %d products", len(results))
-    return make_response(jsonify(results), status.HTTP_200_OK)
-
-######################################################################
-# QUERY PRODUCTS BY PRICE RANGE
-######################################################################
-@app.route("/products/price", methods=["GET"])
-def query_product_by_price():
-    """ List all the product by their price range """
-    app.logger.info("Querying products by provided price range")
-    products = []
-
-    minimum = request.args.get('minimum')
-    maximum = request.args.get('maximum')
-    if maximum is None or minimum is None:
-        return request_validation_error("Minimum and Maximum cannot be none")
-    if maximum == "" or minimum == "":
-        return request_validation_error("Minimum and Maximum cannot be empty")
-
-    products = Product.query_by_price(minimum, maximum)
-
-    results = [product.serialize() for product in products]
-    app.logger.info("Returning %d products", len(results))
-    return make_response(jsonify(results), status.HTTP_200_OK)
+        results = [product.serialize() for product in products]
+        app.logger.info("Returning %d products", len(results))
+        return results, status.HTTP_200_OK
 
 ######################################################################
 # PURCHASE AN EXISTING PRODUCT
@@ -338,12 +288,12 @@ def purchase_products(product_id):
     amount_update = request_body['amount']
     user_id = request_body['user_id']
     header = {'Content-Type': 'application/json'}
-    resp = requests.get('{}?user_id={}'.format(SHOPCART_ENDPOINT,user_id))
+    resp = requests.get('{}?user_id={}'.format(SHOPCART_ENDPOINT, user_id))
     #print('{}?user_id={}'.format(SHOPCART_ENDPOINT,user_id))
     r_json = resp.json()
     if len(r_json) == 0:
         info_json = {"user_id": user_id}
-        create_shopcart_resp = create_shopcart(SHOPCART_ENDPOINT,header,info_json)
+        create_shopcart_resp = create_shopcart(SHOPCART_ENDPOINT, header, info_json)
         if create_shopcart_resp.status_code == 201:
             message = create_shopcart_resp.json()
             shopcart_id = message['id']
@@ -353,7 +303,7 @@ def purchase_products(product_id):
             product = product.serialize()
             new_item["name"] = product["name"]
             new_item["price"] = product["price"]
-            add_into_shopcart = add_item_to_shopcart(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id),header,new_item)
+            add_into_shopcart = add_item_to_shopcart(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id), header, new_item)
             if add_into_shopcart.status_code == 201:
                 return make_response("Product successfully added into the shopping cart", status.HTTP_200_OK)
             return make_response("Product not successfully added into the shopping cart", status.HTTP_400_BAD_REQUEST)
@@ -365,7 +315,7 @@ def purchase_products(product_id):
     product = product.serialize()
     new_item["name"] = product["name"]
     new_item["price"] = product["price"]
-    add_into_shopcart = add_item_to_shopcart(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id),header,new_item)
+    add_into_shopcart = add_item_to_shopcart(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id), header, new_item)
     if add_into_shopcart.status_code == 201:
         return make_response("Product successfully added into the shopping cart", status.HTTP_200_OK)
     return make_response("Product was not added in the shopping cart because of an error", status.HTTP_404_NOT_FOUND)
@@ -386,10 +336,10 @@ def check_content_type(content_type):
     app.logger.error("Invalid Content-Type: %s", request.headers["Content-Type"])
     abort(415, "Content-Type must be {}".format(content_type))
 
-def create_shopcart(url,header,json_data):
+def create_shopcart(url, header, json_data):
     '''Used to call the create shopcart function'''
-    return requests.post(url,headers = header,json = json_data)
+    return requests.post(url, headers=header, json=json_data)
 
-def add_item_to_shopcart(url,header,json_data):
+def add_item_to_shopcart(url, header, json_data):
     '''Used to call the add item to shopcart function'''
-    return requests.post(url,headers = header, json = json_data)
+    return requests.post(url, headers=header, json=json_data)
