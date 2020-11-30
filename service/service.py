@@ -8,17 +8,15 @@ import os
 #import sys
 #import logging
 #import json
-import uuid
 import requests
-from functools import wraps
-from flask import Flask, jsonify, request, url_for, make_response, abort,render_template
+from flask import jsonify, request, make_response, abort, render_template
 from flask_api import status  # HTTP Status Codes
 from werkzeug.exceptions import NotFound
 
 # For this example we'll use SQLAlchemy, a popular ORM that supports a
 # variety of backends including SQLite, MySQL, and PostgreSQL
 #from flask_sqlalchemy import SQLAlchemy
-from flask_restplus import Api, Resource, fields, reqparse, inputs
+from flask_restplus import Api, Resource, fields, reqparse
 from service.models import Product, DataValidationError
 
 # Import Flask application
@@ -46,13 +44,13 @@ create_model = api.model('Product', {
     'category': fields.String(required=True,
                               description='The category of Product (e.g., food, technology, etc.)'),
     'description': fields.String(required=True,
-                              description='The description of the Product'),                         
+                                 description='The description of the Product'),
     'price': fields.Float(required=True,
-                                description='The price of the Product')
+                          description='The price of the Product')
 })
 
 product_model = api.inherit(
-    'ProductModel', 
+    'ProductModel',
     create_model,
     {
         'id': fields.String(readOnly=True,
@@ -142,7 +140,7 @@ class ProductResource(Resource):
     @api.doc('get_products')
     @api.response(404, 'Product not found')
     @api.marshal_with(product_model)
-    def get(self,product_id):
+    def get(self, product_id):
         """
         Retrieve a product
         This endpoint will return a product based on its id
@@ -163,7 +161,7 @@ class ProductResource(Resource):
     @api.response(400, 'The posted Product data was not valid')
     @api.expect(product_model)
     @api.marshal_with(product_model)
-    def put(self,product_id):
+    def put(self, product_id):
         """
         Update a product
         This endpoint will update a product based on the request body
@@ -198,7 +196,7 @@ class ProductResource(Resource):
     #------------------------------------------------------------------
     @api.doc('delete_products')
     @api.response(204, 'Product deleted')
-    def delete(self,product_id):
+    def delete(self, product_id):
         """
         Delete a Product
         This endpoint will delete a product based the id specified in the path
@@ -264,9 +262,7 @@ class ProductCollection(Resource):
         elif minimum is None and maximum is None:
             products = Product.all()
         else:
-            if maximum is None or minimum is None:
-                return request_validation_error("Minimum and Maximum cannot be none")
-            if maximum == "" or minimum == "":
+            if maximum is None or minimum is None or maximum == "" or minimum == "":
                 return request_validation_error("Minimum and Maximum cannot be empty")
             products = Product.query_by_price(minimum, maximum)
 
@@ -292,12 +288,12 @@ def purchase_products(product_id):
     amount_update = request_body['amount']
     user_id = request_body['user_id']
     header = {'Content-Type': 'application/json'}
-    resp = requests.get('{}?user_id={}'.format(SHOPCART_ENDPOINT,user_id))
+    resp = requests.get('{}?user_id={}'.format(SHOPCART_ENDPOINT, user_id))
     #print('{}?user_id={}'.format(SHOPCART_ENDPOINT,user_id))
     r_json = resp.json()
     if len(r_json) == 0:
         info_json = {"user_id": user_id}
-        create_shopcart_resp = create_shopcart(SHOPCART_ENDPOINT,header,info_json)
+        create_shopcart_resp = create_shopcart(SHOPCART_ENDPOINT, header, info_json)
         if create_shopcart_resp.status_code == 201:
             message = create_shopcart_resp.json()
             shopcart_id = message['id']
@@ -307,7 +303,7 @@ def purchase_products(product_id):
             product = product.serialize()
             new_item["name"] = product["name"]
             new_item["price"] = product["price"]
-            add_into_shopcart = add_item_to_shopcart(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id),header,new_item)
+            add_into_shopcart = add_item_to_shopcart(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id), header, new_item)
             if add_into_shopcart.status_code == 201:
                 return make_response("Product successfully added into the shopping cart", status.HTTP_200_OK)
             return make_response("Product not successfully added into the shopping cart", status.HTTP_400_BAD_REQUEST)
@@ -319,7 +315,7 @@ def purchase_products(product_id):
     product = product.serialize()
     new_item["name"] = product["name"]
     new_item["price"] = product["price"]
-    add_into_shopcart = add_item_to_shopcart(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id),header,new_item)
+    add_into_shopcart = add_item_to_shopcart(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id), header, new_item)
     if add_into_shopcart.status_code == 201:
         return make_response("Product successfully added into the shopping cart", status.HTTP_200_OK)
     return make_response("Product was not added in the shopping cart because of an error", status.HTTP_404_NOT_FOUND)
@@ -340,10 +336,10 @@ def check_content_type(content_type):
     app.logger.error("Invalid Content-Type: %s", request.headers["Content-Type"])
     abort(415, "Content-Type must be {}".format(content_type))
 
-def create_shopcart(url,header,json_data):
+def create_shopcart(url, header, json_data):
     '''Used to call the create shopcart function'''
-    return requests.post(url,headers = header,json = json_data)
+    return requests.post(url, headers=header, json=json_data)
 
-def add_item_to_shopcart(url,header,json_data):
+def add_item_to_shopcart(url, header, json_data):
     '''Used to call the add item to shopcart function'''
-    return requests.post(url,headers = header, json = json_data)
+    return requests.post(url, headers=header, json=json_data)
