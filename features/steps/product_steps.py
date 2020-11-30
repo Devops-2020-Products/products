@@ -23,7 +23,7 @@ def step_impl(context):
     """ Delete all Products and load new ones """
     headers = {'Content-Type': 'application/json'}
     # list all of the products and delete them one by one
-    context.resp = requests.get(context.base_url + '/products', headers=headers)
+    context.resp = requests.get(context.base_url + '/api/products')
     expect(context.resp.status_code).to_equal(200)
     for product in context.resp.json():
         context.resp = requests.delete(context.base_url + '/api/products/' + str(product["id"]), headers=headers)

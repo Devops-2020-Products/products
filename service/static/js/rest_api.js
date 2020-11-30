@@ -116,9 +116,7 @@ $(function () {
 
         var ajax = $.ajax({
             type: "GET",
-            url: "/api/products/" + product_id,
-            contentType: "application/json",
-            data: ''
+            url: "/api/products/" + product_id
         })
 
         ajax.done(function(res){
@@ -256,9 +254,7 @@ $(function () {
 
         var ajax = $.ajax({
             type: "GET",
-            url: "/api/products?" + queryString,
-            contentType: "application/json",
-            data: ''
+            url: "/api/products?" + queryString
         })
 
         ajax.done(function(res){
