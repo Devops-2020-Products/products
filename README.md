@@ -63,7 +63,7 @@ The flask base service is in the ```service``` directory and its tests are in th
 |        /api/products?name={name}        |   **GET**   |          query the database by the name of products          |
 | /api/products?description={description} |   **GET**   |      query the database by the description of products       |
 |           /api/products?minimum={minimum}&maximum={maximum}           |   **GET**   |      query the database by the price range of products       |
-|       /products/{id}/purchase       |  **POST**   | purchases the product with the corresponding id by adding it to user's shopping cart with the request body consisting of user_id, shopcart_id, and the amount you wish to purchase. |
+|       /api/products/{id}/purchase       |  **POST**   | purchases the product with the corresponding id by adding it to user's shopping cart with the request body consisting of user_id, shopcart_id, and the amount you wish to purchase. |
 
 
  
