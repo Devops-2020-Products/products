@@ -330,9 +330,9 @@ class TestProductServer(TestCase):
                 post_shopcart_item_mock.return_value.status_code=201
                 json = {"user_id": user_id, "amount": 4}
                 product = self._create_products(1)
-                resp = self.app.post("/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
+                resp = self.app.post("/api/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
                 self.assertEqual(resp.status_code, status.HTTP_200_OK)
-                self.assertEqual(resp.data, b'Product successfully added into the shopping cart')
+                self.assertEqual(resp.data, b'"Product successfully added into the shopping cart"\n')
 
     def test_purchase_product_shopcart_no_exist(self):
         '''Purchase a Product Shopcart Doesn't Exist Successfully'''
@@ -346,9 +346,9 @@ class TestProductServer(TestCase):
                     post_shopcartitem_mock.return_value.status_code=201
                     json = {"user_id": user_id, "amount": 4}
                     product = self._create_products(1)
-                    resp = self.app.post("/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
+                    resp = self.app.post("/api/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
                     self.assertEqual(resp.status_code, status.HTTP_200_OK)
-                    self.assertEqual(resp.data, b'Product successfully added into the shopping cart')
+                    self.assertEqual(resp.data, b'"Product successfully added into the shopping cart"\n')
 
     def test_purchase_product_not_found(self):
         '''Purchase a Product That's Not Found'''
@@ -359,7 +359,7 @@ class TestProductServer(TestCase):
             with patch('service.service.add_item_to_shopcart') as post_shopcart_item_mock:
                 post_shopcart_item_mock.return_value.status_code=201
                 json = {"user_id": user_id, "amount": 4}
-                resp = self.app.post("/products/1/purchase", json=json, content_type="application/json")
+                resp = self.app.post("/api/products/1/purchase", json=json, content_type="application/json")
                 self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_purchase_product_cannot_add_shopcart(self):
@@ -372,9 +372,9 @@ class TestProductServer(TestCase):
                 post_shopcart_item_mock.return_value.status_code=400
                 json = {"user_id": user_id, "amount": 4}
                 product = self._create_products(1)
-                resp = self.app.post("/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
+                resp = self.app.post("/api/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
                 self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
-                self.assertEqual(resp.data, b'Product was not added in the shopping cart because of an error')
+                self.assertEqual(resp.data, b'"Product was not added in the shopping cart because of an error"\n')
 
     def test_purchase_unsuccessful_product_shopcart_error(self):
         '''Purchase a Product Shopcart Doesn't Exist (ShopCart Creation Error)'''
@@ -386,9 +386,9 @@ class TestProductServer(TestCase):
                 create_shopcart_mock.return_value.status_code=400
                 json = {"user_id": user_id, "amount": 4}
                 product = self._create_products(1)
-                resp = self.app.post("/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
+                resp = self.app.post("/api/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
                 self.assertEqual(resp.status_code,status.HTTP_400_BAD_REQUEST)
-                self.assertEqual(resp.data, b'Cannot create shopcart so cannot add product into shopping cart')
+                self.assertEqual(resp.data, b'"Cannot create shopcart so cannot add product into shopping cart"\n')
 
     def test_purchase_product_shopcart_unsuccessful_product(self):
         '''Purchase a Product (Product Adding Error) '''
@@ -402,6 +402,6 @@ class TestProductServer(TestCase):
                     post_shopcartitem_mock.return_value.status_code=400
                     json = {"user_id": user_id, "amount": 4}
                     product = self._create_products(1)
-                    resp = self.app.post("/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
+                    resp = self.app.post("/api/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
                     self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-                    self.assertEqual(resp.data, b'Product not successfully added into the shopping cart')
+                    self.assertEqual(resp.data, b'"Product not successfully added into the shopping cart"\n')
