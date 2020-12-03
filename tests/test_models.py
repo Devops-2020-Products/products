@@ -161,7 +161,7 @@ class TestProductModel(unittest.TestCase):
         """ Find Products by Category """
         Product(name="iPhone X", description="Black iPhone", category="Technology", price=9999.99).create()
         Product(name="Cake", description="Chocolate Cake", category="Food", price=10.50).create()
-        products = Product.find_by_category("Technology")
+        products = Product.find_by_category("technology")
         self.assertEqual(products[0].category, "Technology")
         self.assertEqual(products[0].name, "iPhone X")
         self.assertEqual(products[0].description, "Black iPhone")
@@ -171,7 +171,7 @@ class TestProductModel(unittest.TestCase):
         """ Find Products by Name """
         Product(name="iPhone X", description="Black iPhone", category="Technology", price=9999.99).create()
         Product(name="Cake", description="Chocolate Cake", category="Food", price=10.50).create()
-        products = Product.find_by_name("iPhone X")
+        products = Product.find_by_name("iPhone x")
         self.assertEqual(products[0].category, "Technology")
         self.assertEqual(products[0].name, "iPhone X")
         self.assertEqual(products[0].description, "Black iPhone")
@@ -181,7 +181,7 @@ class TestProductModel(unittest.TestCase):
         """ Find Products by Description """
         Product(name="iPhone X", description="Black iPhone", category="Technology", price=9999.99).create()
         Product(name="Cake", description="Chocolate Cake", category="Food", price=10.50).create()
-        products = Product.find_by_description("Black iPhone")
+        products = Product.find_by_description("black")
         self.assertEqual(products[0].category, "Technology")
         self.assertEqual(products[0].name, "iPhone X")
         self.assertEqual(products[0].description, "Black iPhone")
@@ -192,6 +192,116 @@ class TestProductModel(unittest.TestCase):
         Product(name="iPhone X", description="Black iPhone", category="Technology", price=9999.99).create()
         Product(name="Cake", description="Chocolate Cake", category="Food", price=10.50).create()
         products = Product.query_by_price(800, 10000)
+        self.assertEqual(products[0].category, "Technology")
+        self.assertEqual(products[0].name, "iPhone X")
+        self.assertEqual(products[0].description, "Black iPhone")
+        self.assertEqual(products[0].price, 9999.99)
+
+    def test_find_by_name_category(self):
+        """ Find Products by Name and Category """
+        Product(name="iPhone X", description="Black iPhone", category="Technology", price=9999.99).create()
+        Product(name="Cake", description="Chocolate Cake", category="Food", price=10.50).create()
+        products = Product.find_by_name_category("iPhone x", "technology")
+        self.assertEqual(products[0].category, "Technology")
+        self.assertEqual(products[0].name, "iPhone X")
+        self.assertEqual(products[0].description, "Black iPhone")
+        self.assertEqual(products[0].price, 9999.99)
+
+    def test_find_by_name_description(self):
+        """ Find Products by Name and Description """
+        Product(name="iPhone X", description="Black iPhone", category="Technology", price=9999.99).create()
+        Product(name="Cake", description="Chocolate Cake", category="Food", price=10.50).create()
+        products = Product.find_by_name_description("iPhone x", "iPhone")
+        self.assertEqual(products[0].category, "Technology")
+        self.assertEqual(products[0].name, "iPhone X")
+        self.assertEqual(products[0].description, "Black iPhone")
+        self.assertEqual(products[0].price, 9999.99)
+
+    def test_find_by_name_price(self):
+        """ Find Products by Name and Price """
+        Product(name="iPhone X", description="Black iPhone", category="Technology", price=9999.99).create()
+        Product(name="Cake", description="Chocolate Cake", category="Food", price=10.50).create()
+        products = Product.find_by_name_price("iPhone x", 800, 10000)
+        self.assertEqual(products[0].category, "Technology")
+        self.assertEqual(products[0].name, "iPhone X")
+        self.assertEqual(products[0].description, "Black iPhone")
+        self.assertEqual(products[0].price, 9999.99)
+
+    def test_find_by_category_description(self):
+        """ Find Products by Category and Description """
+        Product(name="iPhone X", description="Black iPhone", category="Technology", price=9999.99).create()
+        Product(name="Cake", description="Chocolate Cake", category="Food", price=10.50).create()
+        products = Product.find_by_category_description("technology", "iPhone")
+        self.assertEqual(products[0].category, "Technology")
+        self.assertEqual(products[0].name, "iPhone X")
+        self.assertEqual(products[0].description, "Black iPhone")
+        self.assertEqual(products[0].price, 9999.99)
+
+    def test_find_by_category_price(self):
+        """ Find Products by Category and Price """
+        Product(name="iPhone X", description="Black iPhone", category="Technology", price=9999.99).create()
+        Product(name="Cake", description="Chocolate Cake", category="Food", price=10.50).create()
+        products = Product.find_by_category_price("technology", 800, 10000)
+        self.assertEqual(products[0].category, "Technology")
+        self.assertEqual(products[0].name, "iPhone X")
+        self.assertEqual(products[0].description, "Black iPhone")
+        self.assertEqual(products[0].price, 9999.99)
+
+    def test_find_by_description_price(self):
+        """ Find Products by Description and Price """
+        Product(name="iPhone X", description="Black iPhone", category="Technology", price=9999.99).create()
+        Product(name="Cake", description="Chocolate Cake", category="Food", price=10.50).create()
+        products = Product.find_by_description_price("iPhone", 800, 10000)
+        self.assertEqual(products[0].category, "Technology")
+        self.assertEqual(products[0].name, "iPhone X")
+        self.assertEqual(products[0].description, "Black iPhone")
+        self.assertEqual(products[0].price, 9999.99)
+
+    def test_find_by_name_category_description(self):
+        """ Find Products by Name, Category and Description """
+        Product(name="iPhone X", description="Black iPhone", category="Technology", price=9999.99).create()
+        Product(name="Cake", description="Chocolate Cake", category="Food", price=10.50).create()
+        products = Product.find_by_name_category_description("iPhone x", "technology", "iPhone")
+        self.assertEqual(products[0].category, "Technology")
+        self.assertEqual(products[0].name, "iPhone X")
+        self.assertEqual(products[0].description, "Black iPhone")
+        self.assertEqual(products[0].price, 9999.99)
+
+    def test_find_by_name_category_price(self):
+        """ Find Products by Name, Category and Price """
+        Product(name="iPhone X", description="Black iPhone", category="Technology", price=9999.99).create()
+        Product(name="Cake", description="Chocolate Cake", category="Food", price=10.50).create()
+        products = Product.find_by_name_category_price("iPhone x", "technology", 800, 10000)
+        self.assertEqual(products[0].category, "Technology")
+        self.assertEqual(products[0].name, "iPhone X")
+        self.assertEqual(products[0].description, "Black iPhone")
+        self.assertEqual(products[0].price, 9999.99)
+
+    def test_find_by_name_description_price(self):
+        """ Find Products by Name, Descrption and Price """
+        Product(name="iPhone X", description="Black iPhone", category="Technology", price=9999.99).create()
+        Product(name="Cake", description="Chocolate Cake", category="Food", price=10.50).create()
+        products = Product.find_by_name_description_price("iPhone x", "iPhone", 800, 10000)
+        self.assertEqual(products[0].category, "Technology")
+        self.assertEqual(products[0].name, "iPhone X")
+        self.assertEqual(products[0].description, "Black iPhone")
+        self.assertEqual(products[0].price, 9999.99)
+
+    def test_find_by_category_description_price(self):
+        """ Find Products by Category, Description and Price """
+        Product(name="iPhone X", description="Black iPhone", category="Technology", price=9999.99).create()
+        Product(name="Cake", description="Chocolate Cake", category="Food", price=10.50).create()
+        products = Product.find_by_category_description_price("technology", "iPhone", 800, 10000)
+        self.assertEqual(products[0].category, "Technology")
+        self.assertEqual(products[0].name, "iPhone X")
+        self.assertEqual(products[0].description, "Black iPhone")
+        self.assertEqual(products[0].price, 9999.99)
+
+    def test_find_by_name_category_description_price(self):
+        """ Find Products by Name, Category, Description and Price """
+        Product(name="iPhone X", description="Black iPhone", category="Technology", price=9999.99).create()
+        Product(name="Cake", description="Chocolate Cake", category="Food", price=10.50).create()
+        products = Product.find_by_name_category_description_price("iPhone x", "technology", "iPhone", 800, 10000)
         self.assertEqual(products[0].category, "Technology")
         self.assertEqual(products[0].name, "iPhone X")
         self.assertEqual(products[0].description, "Black iPhone")

@@ -253,18 +253,44 @@ class ProductCollection(Resource):
         minimum = args.get('minimum')
         maximum = args.get('maximum')
 
-        if category is not None:
-            products = Product.find_by_category(category)
-        elif name is not None:
-            products = Product.find_by_name(name)
-        elif description is not None:
-            products = Product.find_by_description(description)
+        if minimum and maximum:
+            if not isinstance(maximum, float) or not isinstance(minimum, float):
+                return request_validation_error("Minimum or Maximum has the wrong type")
+            elif name and category and description:
+                products = Product.find_by_name_category_description_price(name, category, description, minimum, maximum)
+            elif name and category:
+                products = Product.find_by_name_category_price(name, category, minimum, maximum)
+            elif name and description:
+                products = Product.find_by_name_description_price(name, description, minimum, maximum)
+            elif name:
+                products = Product.find_by_name_price(name, minimum, maximum)
+            elif category and description:
+                products = Product.find_by_category_description_price(category, description, minimum, maximum)
+            elif category:
+                products = Product.find_by_category_price(category, minimum, maximum)
+            elif description:
+                products = Product.find_by_description_price(description, minimum, maximum)
+            else:
+                products = Product.query_by_price(minimum, maximum)
         elif minimum is None and maximum is None:
-            products = Product.all()
+            if name and category and description:
+                products = Product.find_by_name_category_description(name, category, description)
+            elif name and category:
+                products = Product.find_by_name_category(name, category)
+            elif name and description:
+                products = Product.find_by_name_description(name, description)
+            elif name:
+                products = Product.find_by_name(name)
+            elif category and description:
+                products = Product.find_by_category_description(category, description)
+            elif category:
+                products = Product.find_by_category(category)
+            elif description:
+                products = Product.find_by_description(description)
+            else:
+                products = Product.all()
         else:
-            if maximum is None or minimum is None or maximum == "" or minimum == "":
-                return request_validation_error("Minimum and Maximum cannot be empty")
-            products = Product.query_by_price(minimum, maximum)
+            return request_validation_error("Minimum and Maximum cannot be empty")
 
         results = [product.serialize() for product in products]
         app.logger.info("Returning %d products", len(results))
