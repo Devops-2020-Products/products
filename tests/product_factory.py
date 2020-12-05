@@ -3,7 +3,7 @@ from factory.fuzzy import FuzzyChoice
 from service.models import Product
 
 class ProductFactory(factory.Factory):
-	""" Creates fake products used for testing"""
+	""" Creates fake products used for testing """
 	class Meta:
 		model = Product 
 

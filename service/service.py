@@ -139,6 +139,7 @@ class ProductResource(Resource):
     #------------------------------------------------------------------
     @api.doc('get_products')
     @api.response(404, 'Product not found')
+    @api.response(400, 'Invalid Product ID')
     @api.marshal_with(product_model)
     def get(self, product_id):
         """
@@ -146,11 +147,18 @@ class ProductResource(Resource):
         This endpoint will return a product based on its id
         """
         app.logger.info("Request for product with id: %s", product_id)
+        try:
+            product_id = int(product_id)
+        except ValueError:
+            app.logger.info("Invalid Product ID.")
+            api.abort(status.HTTP_400_BAD_REQUEST, "Invalid Product ID.")
+
         product = Product.find(product_id)
         if not product:
+            app.logger.info("Product with id [%s] was not found.", product_id)
             api.abort(status.HTTP_404_NOT_FOUND, "Product with id '{}' was not found.".format(product_id))
 
-        app.logger.info("Returning product: %s", product.name)
+        app.logger.info("Returning product with id [%s].", product.id)
         return product.serialize(), status.HTTP_200_OK
 
     #------------------------------------------------------------------
@@ -168,27 +176,38 @@ class ProductResource(Resource):
         """
         app.logger.info("Request to update product with id: %s", product_id)
         check_content_type("application/json")
+        try:
+            product_id = int(product_id)
+        except ValueError:
+            app.logger.info("Invalid Product ID.")
+            api.abort(status.HTTP_400_BAD_REQUEST, "Invalid Product ID.")
+
         product = Product.find(product_id)
         if not product:
+            app.logger.info("Product with id [%s] was not found.", product_id)
             api.abort(status.HTTP_404_NOT_FOUND, "Product with id '{}' was not found.".format(product_id))
-        app.logger.debug('Payload = %s', api.payload)
-        product_name = product.name
-        product_description = product.description
-        product_category = product.category
-        product_price = product.price
-        data = api.payload
-        product.deserialize(data)
-        product.id = product_id
-        if product.name == "":
-            product.name = product_name
-        if product.description == "":
-            product.description = product_description
-        if product.price == "":
-            product.price = product_price
-        if product.category == "":
-            product.category = product_category
-        product.update()
-        app.logger.info("Product with ID [%s] updated.", product.id)
+
+        try:
+            app.logger.debug('Payload = %s', api.payload)
+            product_name = product.name
+            product_description = product.description
+            product_category = product.category
+            product_price = product.price
+            data = api.payload
+            product.deserialize(data)
+            product.id = product_id
+            if product.name == "":
+                product.name = product_name
+            if product.description == "":
+                product.description = product_description
+            if product.price == "":
+                product.price = product_price
+            if product.category == "":
+                product.category = product_category
+            product.update()
+        except DataValidationError as error:
+            api.abort(status.HTTP_400_BAD_REQUEST, str(error))
+        app.logger.info("Product with id [%s] updated.", product.id)
         return product.serialize(), status.HTTP_200_OK
 
     #------------------------------------------------------------------
@@ -202,13 +221,19 @@ class ProductResource(Resource):
         This endpoint will delete a product based the id specified in the path
         """
         app.logger.info("Request to delete product with id: %s", product_id)
+        try:
+            product_id = int(product_id)
+        except ValueError:
+            app.logger.info("Invalid Product ID.")
+            api.abort(status.HTTP_400_BAD_REQUEST, "Invalid Product ID.")
+
         product = Product.find(product_id)
         if product:
             product.delete()
-        app.logger.info("Product with ID [%s] delete complete.", product_id)
+        app.logger.info("Product with id [%s] delete complete.", product_id)
         return '', status.HTTP_204_NO_CONTENT
 
-@api.route('/products', strict_slashes=False)
+@api.route('/products')
 class ProductCollection(Resource):
     """ Handles all interactions with collections of Products """
     ######################################################################
@@ -229,9 +254,10 @@ class ProductCollection(Resource):
         product = Product()
         product.deserialize(api.payload)
         if product.id == "" or product.name == "" or product.description == "" or product.price == "" or product.category == "":
-            return request_validation_error("Fields cannot be empty")
+            app.logger.info("Fields cannot be empty.")
+            return api.abort(status.HTTP_400_BAD_REQUEST, "Fields cannot be empty.")
         product.create()
-        app.logger.info("Product with ID [%s] created.", product.id)
+        app.logger.info("Product with id [%s] created.", product.id)
         location_url = api.url_for(ProductResource, product_id=product.id, _external=True)
         return product.serialize(), status.HTTP_201_CREATED, {'Location': location_url}
 
@@ -240,6 +266,7 @@ class ProductCollection(Resource):
     ######################################################################
     @api.doc('list_products')
     @api.expect(product_args, validate=True)
+    @api.response(400, 'Minimum and Maximum cannot be empty')
     @api.marshal_list_with(product_model)
     @app.route("/products", methods=["GET"])
     def get(self):
@@ -253,21 +280,46 @@ class ProductCollection(Resource):
         minimum = args.get('minimum')
         maximum = args.get('maximum')
 
-        if category is not None:
-            products = Product.find_by_category(category)
-        elif name is not None:
-            products = Product.find_by_name(name)
-        elif description is not None:
-            products = Product.find_by_description(description)
+        if minimum and maximum:
+            if name and category and description:
+                products = Product.find_by_name_category_description_price(name, category, description, minimum, maximum)
+            elif name and category:
+                products = Product.find_by_name_category_price(name, category, minimum, maximum)
+            elif name and description:
+                products = Product.find_by_name_description_price(name, description, minimum, maximum)
+            elif name:
+                products = Product.find_by_name_price(name, minimum, maximum)
+            elif category and description:
+                products = Product.find_by_category_description_price(category, description, minimum, maximum)
+            elif category:
+                products = Product.find_by_category_price(category, minimum, maximum)
+            elif description:
+                products = Product.find_by_description_price(description, minimum, maximum)
+            else:
+                products = Product.query_by_price(minimum, maximum)
         elif minimum is None and maximum is None:
-            products = Product.all()
+            if name and category and description:
+                products = Product.find_by_name_category_description(name, category, description)
+            elif name and category:
+                products = Product.find_by_name_category(name, category)
+            elif name and description:
+                products = Product.find_by_name_description(name, description)
+            elif name:
+                products = Product.find_by_name(name)
+            elif category and description:
+                products = Product.find_by_category_description(category, description)
+            elif category:
+                products = Product.find_by_category(category)
+            elif description:
+                products = Product.find_by_description(description)
+            else:
+                products = Product.all()
         else:
-            if maximum is None or minimum is None or maximum == "" or minimum == "":
-                return request_validation_error("Minimum and Maximum cannot be empty")
-            products = Product.query_by_price(minimum, maximum)
+            app.logger.info("Minimum and Maximum cannot be empty.")
+            return api.abort(status.HTTP_400_BAD_REQUEST, "Minimum and Maximum cannot be empty.")
 
         results = [product.serialize() for product in products]
-        app.logger.info("Returning %d products", len(results))
+        app.logger.info("Returning %d products.", len(results))
         return results, status.HTTP_200_OK
 
 @api.route('/products/<product_id>/purchase')

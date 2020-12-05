@@ -22,7 +22,15 @@ Scenario: Create a Product
     And I set the "Description" to "Liquid Hand Soap"
     And I set the "Price" to "1.99"
     And I press the "Create" button
-    Then I should see the message "Success"
+    Then I should see the message "Product has been Created!"
+
+Scenario: Create a Product Bad Request
+    When I visit the "Home Page"
+    And I set the "Category" to "Toiletries"
+    And I set the "Description" to "Liquid Hand Soap"
+    And I set the "Price" to "1.99"
+    And I press the "Create" button
+    Then I should see the message "Fields cannot be empty."
 
 Scenario: Read a Product
     When I visit the "Home Page"
@@ -34,7 +42,7 @@ Scenario: Read a Product
     And I press the "Clear" button
     And I paste the "ID" field
     And I press the "Retrieve" button
-    Then I should see the message "Success"
+    Then I should see the message "Product has been Retrieved!"
     And I should see "Samsung TV" in the "Name" field
     And I should see "Tech" in the "Category" field
     And I should see "52 inch Samsung TV" in the "Description" field
@@ -62,7 +70,8 @@ Scenario: Query Products by Price
     When I visit the "Home Page"
     And I set the "Price_Range" to "1000-4000"
     And I press the "Search" button
-    Then I should see "Samsung TV" in the results
+    Then I should see the message "Queried Products have been Returned!"
+    And I should see "Samsung TV" in the results
     And I should see "Samsung Galaxy 20" in the results
     And I should not see "White Bread" in the results
     And I should not see "Soap" in the results
@@ -70,11 +79,18 @@ Scenario: Query Products by Price
     And I should see "Tech" in the "Category" field
     And I should see "3999.99" in the "Price" field
 
+Scenario: Query Products by Price Bad Request
+    When I visit the "Home Page"
+    And I set the "Price_Range" to "1000-"
+    And I press the "Search" button
+    Then I should see the message "Minimum and Maximum cannot be empty."
+
 Scenario: Query Products by Name
     When I visit the "Home Page"
     And I set the "Search_Name" to "Samsung Galaxy 20"
     And I press the "Search" button
-    Then I should see "Samsung Galaxy 20" in the results
+    Then I should see the message "Queried Products have been Returned!"
+    And I should see "Samsung Galaxy 20" in the results
     And I should not see "Samsung TV" in the results
     And I should not see "White Bread" in the results
     And I should not see "Soap" in the results
@@ -87,7 +103,8 @@ Scenario: Query Products by Category
     When I visit the "Home Page"
     And I set the "Search_Category" to "Tech"
     And I press the "Search" button
-    Then I should see "Samsung TV" in the results
+    Then I should see the message "Queried Products have been Returned!"
+    And I should see "Samsung TV" in the results
     And I should see "Samsung Galaxy 20" in the results
     And I should not see "White Bread" in the results
     And I should not see "Soap" in the results
@@ -100,7 +117,8 @@ Scenario: Query Products by Description
     When I visit the "Home Page"
     And I set the "Search_Description" to "Wonder Bread"
     And I press the "Search" button
-    Then I should see "White Bread" in the results
+    Then I should see the message "Queried Products have been Returned!"
+    And I should see "White Bread" in the results
     And I should not see "Samsung TV" in the results
     And I should not see "Samsung Galaxy 20" in the results
     And I should not see "Soap" in the results
@@ -117,7 +135,7 @@ Scenario: Update a Product
     And I should see "Food" in the "Category" field
     When I change "Name" to "Wheat Bread"
     And I press the "Update" button
-    Then I should see the message "Success"
+    Then I should see the message "Product has been Updated!"
     When I copy the "ID" field
     And I press the "Clear" button
     And I paste the "ID" field
@@ -152,4 +170,4 @@ Scenario: Purchase a Product
     And I set the "Amount" to "4"
     And I set the "User_ID" to "472"
     And I press the "Purchase" button
-    Then I should see the message "Product has been purchased!"
+    Then I should see the message "Product has been Purchased!"

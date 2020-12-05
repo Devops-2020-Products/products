@@ -39,7 +39,6 @@ class TestProductServer(TestCase):
         self.app = app.test_client()
         db.drop_all()  # clean up the last tests
         db.create_all()  # create new tables
-        
 
     def tearDown(self):
         """ This runs after each test """
@@ -145,6 +144,13 @@ class TestProductServer(TestCase):
         resp = self.app.get("/api/products/0")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
+    def test_get_product_bad_request(self):
+        """ Get a product with invalid product id """
+        resp = self.app.get("/api/products/a")
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        resp = self.app.get("/api/products/3.3")
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_delete_a_product(self):
         """ Delete a Product """
         test_product = self._create_products(1)[0]
@@ -157,6 +163,13 @@ class TestProductServer(TestCase):
             "/api/products/{}".format(test_product.id), content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_product_bad_request(self):
+        """ Get a product with invalid product id """
+        resp = self.app.delete("/api/products/a")
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        resp = self.app.delete("/api/products/3.3")
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_update_product(self):
         """ Update an existing Product """
@@ -241,6 +254,17 @@ class TestProductServer(TestCase):
 
         # create an update request with bad request body
         new_product = resp.get_json()
+        resp = self.app.put(
+            "/api/products/a",
+            json=new_product,
+            content_type="application/json")
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        resp = self.app.put(
+            "/api/products/3.3",
+            json=new_product,
+            content_type="application/json")
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
         new_product.pop("name")
         resp = self.app.put(
             "/api/products/{}".format(new_product["id"]),
@@ -306,18 +330,192 @@ class TestProductServer(TestCase):
         data = resp.get_json()
         self.assertEqual(len(data), len(price_products))
 
+    def test_query_product_list_by_name_category(self):
+        """ Query Products by Name and Category """
+        products = self._create_products(10)
+        test_name = products[0].name
+        test_category = products[0].category
+        name_category_products = [product for product in products if product.name == test_name and product.category == test_category]
+        resp = self.app.get("/api/products", query_string="name={}&category={}".format(test_name, test_category))
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), len(name_category_products))
+        # check the data just to be sure
+        for product in data:
+            self.assertEqual(product["name"], test_name)
+            self.assertEqual(product["category"], test_category)
+
+    def test_query_product_list_by_name_description(self):
+        """ Query Products by Name and Description """
+        products = self._create_products(10)
+        test_name = products[0].name
+        test_description = products[0].description
+        name_description_products = [product for product in products if product.name == test_name and product.description == test_description]
+        resp = self.app.get("/api/products", query_string="name={}&description={}".format(test_name, test_description))
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), len(name_description_products))
+        # check the data just to be sure
+        for product in data:
+            self.assertEqual(product["name"], test_name)
+            self.assertEqual(product["description"], test_description)
+
+    def test_query_product_by_name_price(self):
+        """ Query Products by Name and Price """
+        products = self._create_products(10)
+        test_name = products[0].name
+        test_max_price = products[0].price * 10
+        test_min_price = products[0].price / 10
+        name_price_products = [product for product in products if product.name == test_name and product.price >= test_min_price and product.price <= test_max_price]
+        resp = self.app.get("/api/products", query_string="name={}&minimum={}&maximum={}".format(test_name, test_min_price, test_max_price))
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), len(name_price_products))
+        # check the data just to be sure
+        for product in data:
+            self.assertEqual(product["name"], test_name)
+
+    def test_query_product_list_by_category_description(self):
+        """ Query Products by Category and Description """
+        products = self._create_products(10)
+        test_category = products[0].category
+        test_description = products[0].description
+        category_description_products = [product for product in products if product.category == test_category and product.description == test_description]
+        resp = self.app.get("/api/products", query_string="category={}&description={}".format(test_category, test_description))
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), len(category_description_products))
+        # check the data just to be sure
+        for product in data:
+            self.assertEqual(product["category"], test_category)
+            self.assertEqual(product["description"], test_description)
+
+    def test_query_product_by_category_price(self):
+        """ Query Products by Category and Price """
+        products = self._create_products(10)
+        test_category = products[0].category
+        test_max_price = products[0].price * 10
+        test_min_price = products[0].price / 10
+        category_price_products = [product for product in products if product.category == test_category and product.price >= test_min_price and product.price <= test_max_price]
+        resp = self.app.get("/api/products", query_string="category={}&minimum={}&maximum={}".format(test_category, test_min_price, test_max_price))
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), len(category_price_products))
+        # check the data just to be sure
+        for product in data:
+            self.assertEqual(product["category"], test_category)
+
+    def test_query_product_by_description_price(self):
+        """ Query Products by Description and Price """
+        products = self._create_products(10)
+        test_description = products[0].description
+        test_max_price = products[0].price * 10
+        test_min_price = products[0].price / 10
+        description_price_products = [product for product in products if product.description == test_description and product.price >= test_min_price and product.price <= test_max_price]
+        resp = self.app.get("/api/products", query_string="description={}&minimum={}&maximum={}".format(test_description, test_min_price, test_max_price))
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), len(description_price_products))
+        # check the data just to be sure
+        for product in data:
+            self.assertEqual(product["description"], test_description)
+
+    def test_query_product_by_name_category_description(self):
+        """ Query Products by Name, Category and Description """
+        products = self._create_products(10)
+        test_name = products[0].name
+        test_category = products[0].category
+        test_description = products[0].description
+        name_category_description_products = [product for product in products if product.name == test_name and product.category == test_category and product.description == test_description]
+        resp = self.app.get("/api/products", query_string="name={}&category={}&description={}".format(test_name, test_category, test_description))
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), len(name_category_description_products))
+        # check the data just to be sure
+        for product in data:
+            self.assertEqual(product["name"], test_name)
+            self.assertEqual(product["category"], test_category)
+            self.assertEqual(product["description"], test_description)
+
+    def test_query_product_by_name_category_price(self):
+        """ Query Products by Name, Category and Price """
+        products = self._create_products(10)
+        test_name = products[0].name
+        test_category = products[0].category
+        test_max_price = products[0].price * 10
+        test_min_price = products[0].price / 10
+        name_category_price_products = [product for product in products if product.name == test_name and product.category == test_category and product.price >= test_min_price and product.price <= test_max_price]
+        resp = self.app.get("/api/products", query_string="name={}&category={}&minimum={}&maximum={}".format(test_name, test_category, test_min_price, test_max_price))
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), len(name_category_price_products))
+        # check the data just to be sure
+        for product in data:
+            self.assertEqual(product["name"], test_name)
+            self.assertEqual(product["category"], test_category)
+
+    def test_query_product_by_name_description_price(self):
+        """ Query Products by Name, Description and Price """
+        products = self._create_products(10)
+        test_name = products[0].name
+        test_description = products[0].description
+        test_max_price = products[0].price * 10
+        test_min_price = products[0].price / 10
+        name_description_price_products = [product for product in products if product.name == test_name and product.description == test_description and product.price >= test_min_price and product.price <= test_max_price]
+        resp = self.app.get("/api/products", query_string="name={}&description={}&minimum={}&maximum={}".format(test_name, test_description, test_min_price, test_max_price))
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), len(name_description_price_products))
+        # check the data just to be sure
+        for product in data:
+            self.assertEqual(product["name"], test_name)
+            self.assertEqual(product["description"], test_description)
+
+    def test_query_product_by_category_description_price(self):
+        """ Query Products by Category, Description and Price """
+        products = self._create_products(10)
+        test_category = products[0].category
+        test_description = products[0].description
+        test_max_price = products[0].price * 10
+        test_min_price = products[0].price / 10
+        category_description_price_products = [product for product in products if product.category == test_category and product.description == test_description and product.price >= test_min_price and product.price <= test_max_price]
+        resp = self.app.get("/api/products", query_string="category={}&description={}&minimum={}&maximum={}".format(test_category, test_description, test_min_price, test_max_price))
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), len(category_description_price_products))
+        # check the data just to be sure
+        for product in data:
+            self.assertEqual(product["category"], test_category)
+            self.assertEqual(product["description"], test_description)
+
+    def test_query_product_by_name_category_description_price(self):
+        """ Query Products by Name, Category, Description and Price """
+        products = self._create_products(10)
+        test_name = products[0].name
+        test_category = products[0].category
+        test_description = products[0].description
+        test_max_price = products[0].price * 10
+        test_min_price = products[0].price / 10
+        name_category_description_price_products = [
+            product for product in products if product.name == test_name and product.category == test_category and product.description == test_description and product.price >= test_min_price and product.price <= test_max_price]
+        resp = self.app.get("/api/products", query_string="name={}&category={}&description={}&minimum={}&maximum={}".format(test_name, test_category, test_description, test_min_price, test_max_price))
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), len(name_category_description_price_products))
+        # check the data just to be sure
+        for product in data:
+            self.assertEqual(product["name"], test_name)
+            self.assertEqual(product["category"], test_category)
+            self.assertEqual(product["description"], test_description)
+
     def test_query_product_by_price_bad_request(self):
-        """ Query Products by Price Range """
+        """ Query Products by Invalid Price Range """
         products = self._create_products(10)
         test_max_price = products[0].price * 10
         test_min_price = products[0].price / 10
         resp = self.app.get("/api/products", query_string="minimum={}".format(test_min_price))
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         resp = self.app.get("/api/products", query_string="maximum={}".format(test_max_price))
-        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-        resp = self.app.get("/api/products", query_string="minimum={}&maximum={}".format(test_min_price, ""))
-        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-        resp = self.app.get("/api/products", query_string="minimum={}&maximum={}".format("", test_max_price))
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_purchase_product_shopcart_exists(self):
