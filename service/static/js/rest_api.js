@@ -60,7 +60,7 @@ $(function () {
 
         ajax.done(function(res){
             update_form_data(res)
-            flash_message("Success")
+            flash_message("Product has been Created!")
         });
 
         ajax.fail(function(res){
@@ -97,7 +97,7 @@ $(function () {
 
         ajax.done(function(res){
             update_form_data(res)
-            flash_message("Success")
+            flash_message("Product has been Updated!")
         });
 
         ajax.fail(function(res){
@@ -135,7 +135,7 @@ $(function () {
             $("#search_results").append(row);
 
             $("#search_results").append('</table>');
-            flash_message("Success")
+            flash_message("Product has been Retrieved!")
         });
 
         ajax.fail(function(res){
@@ -205,7 +205,7 @@ $(function () {
 
         ajax.done(function(res){
             clear_form_data()
-            flash_message("Product has been purchased!")
+            flash_message("Product has been Purchased!")
         });
 
         ajax.fail(function(res){
@@ -236,25 +236,46 @@ $(function () {
         var queryString = "";
 
         if (name) {
-            queryString += 'name=' + name
+            queryString += '?name=' + name;
         }
-        else if (category) {
-            queryString += 'category=' + category
+        if (category) {
+            if (queryString.length > 0) {
+                queryString += '&category=' + category
+            } else {
+                queryString += '?category=' + category
+            }
         }
-        else if (description) {
-            queryString += 'description=' + description
+        if (description) {
+            if (queryString.length > 0) {
+                queryString += '&description=' + description
+            } else {
+                queryString += '?description=' + description
+            }
         }
-        else if (price_range) {
+        if (price_range) {
             var prices = price_range.split('-');
             var price_min = prices[0];
             var price_max = prices[1];
-            queryString += 'minimum=' + price_min;
-            queryString += '&maximum=' + price_max;
+
+            if (price_min != '') {
+                if (queryString.length > 0) {
+                    queryString += '&minimum=' + price_min
+                } else {
+                    queryString += '?minimum=' + price_min
+                }
+            }
+            if (price_max != '') {
+                if (queryString.length > 0) {
+                    queryString += '&maximum=' + price_max
+                } else {
+                    queryString += '?maximum=' + price_max
+                }
+            }
         }
 
         var ajax = $.ajax({
             type: "GET",
-            url: "/api/products?" + queryString
+            url: "/api/products" + queryString
         })
 
         ajax.done(function(res){
@@ -285,7 +306,7 @@ $(function () {
                 update_form_data(firstProduct)
             }
 
-            flash_message("Success")
+            flash_message("Queried Products have been Returned!")
         });
 
         ajax.fail(function(res){

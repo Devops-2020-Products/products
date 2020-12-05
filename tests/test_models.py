@@ -77,6 +77,10 @@ class TestProductModel(unittest.TestCase):
         product = Product()
         self.assertRaises(DataValidationError, product.deserialize, data)
 
+        data = {"id": 1, "name": "iPhone X", "description": "Black iPhone", "category": "Technology", "price": "a"}
+        product = Product()
+        self.assertRaises(DataValidationError, product.deserialize, data)
+
     def test_add_a_product(self):
         """ Create a product and add it to the database """
         products = Product.all()
@@ -85,7 +89,7 @@ class TestProductModel(unittest.TestCase):
         self.assertTrue(product is not None)
         self.assertEqual(product.id, None)
         product.create()
-        # Asert that it was assigned an id and shows up in the database
+        # Assert that it was assigned an id and shows up in the database
         self.assertEqual(product.id, 1)
         products = Product.all()
         self.assertEqual(len(products), 1)

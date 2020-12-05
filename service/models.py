@@ -3,11 +3,11 @@ Models for Product
 
 All of the models are stored in this module
 """
+import re
 import logging
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
 from sqlalchemy.exc import InvalidRequestError
-
 
 # Create the SQLAlchemy object to be initialized later in init_db()
 db = SQLAlchemy()
@@ -93,7 +93,10 @@ class Product(db.Model):
         Args:
             data (dict): A dictionary containing the resource data
         """
+        pattern = re.compile(r'^[+]?([0-9]+(\.[0-9]*)?|[+]?\.[0-9]+)$')
         try:
+            if data["price"] != "" and not isinstance(data["price"], float) and not pattern.match(data["price"]):
+                raise DataValidationError("Invalid Price Input")
             self.name = data["name"]
             self.description = data["description"]
             self.category = data["category"]
