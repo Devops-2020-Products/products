@@ -177,7 +177,7 @@ $(function () {
         });
 
         ajax.fail(function(res){
-            flash_message("Server error!")
+            flash_message(res.responseJSON.message)
         });
     });
 
@@ -209,7 +209,7 @@ $(function () {
         });
 
         ajax.fail(function(res){
-            flash_message("Server error!")
+            flash_message(res.responseJSON.message)
         });
     });
 
