@@ -8,8 +8,7 @@ applications:
   host: nyu-product-service-f20-dev
   domain: us-south.cf.appdomain.cloud
   disk_quota: 1024M
-  buildpack: 
-  - python_buildpack
+  buildpack: python_buildpack
   timeout: 180
   services:
   - ElephantSQL
