@@ -5,6 +5,7 @@ Describe what your service does here
 """
 
 import os
+import re
 #import sys
 #import logging
 #import json
@@ -58,6 +59,15 @@ product_model = api.inherit(
     }
 )
 
+purchase_model = api.model('Purchase', {
+    'id': fields.Integer(required=True,
+                          description='The id of the Product'),
+    'user_id': fields.Integer(required=True,
+                              description='The category of Product (e.g., food, technology, etc.)'),
+    'amount': fields.Integer(required=True,
+                          description='The amount of the Product')
+})
+
 # query string arguments
 product_args = reqparse.RequestParser()
 product_args.add_argument('name', type=str, required=False, help='List Products by name')
@@ -71,34 +81,34 @@ product_args.add_argument('maximum', type=float, required=False, help='The maxim
 # Error Handlers
 ######################################################################
 
-@app.errorhandler(DataValidationError)
-def request_validation_error(error):
-    """ Handles Value Errors from bad data """
-    return bad_request(error)
+# @app.errorhandler(DataValidationError)
+# def request_validation_error(error):
+#     """ Handles Value Errors from bad data """
+#     return bad_request(error)
 
-@app.errorhandler(status.HTTP_400_BAD_REQUEST)
-def bad_request(error):
-    """ Handles bad requests with 400_BAD_REQUEST """
-    message = str(error)
-    app.logger.warning(message)
-    return (
-        jsonify(
-            status=status.HTTP_400_BAD_REQUEST, error="Bad Request", message=message
-        ),
-        status.HTTP_400_BAD_REQUEST,
-    )
+# @app.errorhandler(status.HTTP_400_BAD_REQUEST)
+# def bad_request(error):
+#     """ Handles bad requests with 400_BAD_REQUEST """
+#     message = str(error)
+#     app.logger.warning(message)
+#     return (
+#         jsonify(
+#             status=status.HTTP_400_BAD_REQUEST, error="Bad Request", message=message
+#         ),
+#         status.HTTP_400_BAD_REQUEST,
+#     )
 
-@app.errorhandler(status.HTTP_404_NOT_FOUND)
-def not_found(error):
-    """ Handles resources not found with 404_NOT_FOUND """
-    message = str(error)
-    app.logger.warning(message)
-    return (
-        jsonify(
-            status=status.HTTP_404_NOT_FOUND, error="Not Found", message=message
-        ),
-        status.HTTP_404_NOT_FOUND,
-    )
+# @app.errorhandler(status.HTTP_404_NOT_FOUND)
+# def not_found(error):
+#     """ Handles resources not found with 404_NOT_FOUND """
+#     message = str(error)
+#     app.logger.warning(message)
+#     return (
+#         jsonify(
+#             status=status.HTTP_404_NOT_FOUND, error="Not Found", message=message
+#         ),
+#         status.HTTP_404_NOT_FOUND,
+#     )
 
 
 # @app.errorhandler(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
@@ -324,6 +334,7 @@ class ProductCollection(Resource):
 
 @api.route('/products/<product_id>/purchase')
 @api.param('product_id', 'The Product identifier')
+@api.expect(purchase_model)
 class PurchaseResource(Resource):
     """ Purchase actions on Products """
     ######################################################################
@@ -339,12 +350,27 @@ class PurchaseResource(Resource):
         """
         app.logger.info("Request to purchase product with id: %s", product_id)
         check_content_type("application/json")
+        request_body = request.get_json()
+        if product_id == "" or  request_body['amount'] == "" or request_body['user_id'] == "":
+            api.abort(status.HTTP_400_BAD_REQUEST, "Fields cannot be empty")
+        try:
+            product_id = int(product_id)
+        except ValueError:
+            app.logger.info("Invalid Product ID.")
+            api.abort(status.HTTP_400_BAD_REQUEST, "Invalid Product ID. Must be Integer")
         product = Product.find(product_id)
         if not product:
             api.abort(status.HTTP_404_NOT_FOUND, "Product with id '{}' was not found.".format(product_id))
-        request_body = request.get_json()
-        amount_update = request_body['amount']
-        user_id = request_body['user_id']
+        try:
+            user_id = int(request_body['user_id'])
+        except ValueError:
+            app.logger.info("Invalid User ID.")
+            api.abort(status.HTTP_400_BAD_REQUEST, "Invalid User ID. Must be Integer")
+        try:
+            amount_update = int(request_body['amount'])
+        except ValueError:
+            app.logger.info("Invalid Amount.")
+            api.abort(status.HTTP_400_BAD_REQUEST, "Invalid Amount. Must be Integer")
         header = {'Content-Type': 'application/json'}
         resp = requests.get('{}?user_id={}'.format(SHOPCART_ENDPOINT, user_id))
         #print('{}?user_id={}'.format(SHOPCART_ENDPOINT,user_id))
@@ -364,8 +390,8 @@ class PurchaseResource(Resource):
                 add_into_shopcart = add_item_to_shopcart(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id), header, new_item)
                 if add_into_shopcart.status_code == 201:
                     return 'Product successfully added into the shopping cart', status.HTTP_200_OK
-                return 'Product not successfully added into the shopping cart', status.HTTP_400_BAD_REQUEST
-            return 'Cannot create shopcart so cannot add product into shopping cart', status.HTTP_400_BAD_REQUEST
+                return api.abort(status.HTTP_400_BAD_REQUEST, 'Product not successfully added into the shopping cart')
+            return api.abort(status.HTTP_400_BAD_REQUEST, 'Cannot create shopcart so cannot add product into shopping cart')
         shopcart_id = r_json[0]['id']
         new_item = {}
         new_item["sku"] = product_id

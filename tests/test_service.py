@@ -574,6 +574,75 @@ class TestProductServer(TestCase):
                 self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
                 self.assertEqual(resp.data, b'"Product was not added in the shopping cart because of an error"\n')
 
+    def test_purchase_product_empty_user_id(self):
+        '''Purchase a Product Empty User ID'''
+        user_id = ""
+        with patch('requests.get') as get_shopcart_by_userid_mock:
+            get_shopcart_by_userid_mock.return_value.status_code = 200
+            get_shopcart_by_userid_mock.return_value.json.return_value = [{"create_time": "2020-11-15T19:36:28.302839","id": 6,"update_time": "2020-11-15T19:36:28.302839","user_id": 101}]
+            with patch('service.service.add_item_to_shopcart') as post_shopcart_item_mock:
+                post_shopcart_item_mock.return_value.status_code=201
+                json = {"user_id": user_id, "amount": 4}
+                product = self._create_products(1)
+                resp = self.app.post("/api/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
+                self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+                self.assertEqual(resp.data, b'{"message": "Fields cannot be empty"}\n')
+    
+    def test_purchase_product_empty_amount(self):
+        '''Purchase a Product Empty Amount '''
+        user_id = 101
+        with patch('requests.get') as get_shopcart_by_userid_mock:
+            get_shopcart_by_userid_mock.return_value.status_code = 200
+            get_shopcart_by_userid_mock.return_value.json.return_value = [{"create_time": "2020-11-15T19:36:28.302839","id": 6,"update_time": "2020-11-15T19:36:28.302839","user_id": 101}]
+            with patch('service.service.add_item_to_shopcart') as post_shopcart_item_mock:
+                post_shopcart_item_mock.return_value.status_code=201
+                json = {"user_id": user_id, "amount": ""}
+                product = self._create_products(1)
+                resp = self.app.post("/api/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
+                self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+                self.assertEqual(resp.data, b'{"message": "Fields cannot be empty"}\n')
+
+    def test_purchase_product_id_not_int(self):
+        '''Purchase a Product ID not Int '''
+        user_id = 101
+        with patch('requests.get') as get_shopcart_by_userid_mock:
+            get_shopcart_by_userid_mock.return_value.status_code = 200
+            get_shopcart_by_userid_mock.return_value.json.return_value = [{"create_time": "2020-11-15T19:36:28.302839","id": 6,"update_time": "2020-11-15T19:36:28.302839","user_id": 101}]
+            with patch('service.service.add_item_to_shopcart') as post_shopcart_item_mock:
+                post_shopcart_item_mock.return_value.status_code=201
+                json = {"user_id": user_id, "amount": 4}
+                resp = self.app.post("/api/products/{}/purchase".format("test"), json=json, content_type="application/json")
+                self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+                self.assertEqual(resp.data, b'{"message": "Invalid Product ID. Must be Integer"}\n')
+    
+    def test_purchase_amount_not_int(self):
+        '''Purchase a Product Amount not Int '''
+        user_id = 101
+        with patch('requests.get') as get_shopcart_by_userid_mock:
+            get_shopcart_by_userid_mock.return_value.status_code = 200
+            get_shopcart_by_userid_mock.return_value.json.return_value = [{"create_time": "2020-11-15T19:36:28.302839","id": 6,"update_time": "2020-11-15T19:36:28.302839","user_id": 101}]
+            with patch('service.service.add_item_to_shopcart') as post_shopcart_item_mock:
+                post_shopcart_item_mock.return_value.status_code=201
+                json = {"user_id": user_id, "amount": "hello"}
+                product = self._create_products(1)
+                resp = self.app.post("/api/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
+                self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+                self.assertEqual(resp.data, b'{"message": "Invalid Amount. Must be Integer"}\n')
+
+    def test_purchase_userID_not_int(self):
+        '''Purchase a Product User ID not Int '''
+        user_id = "testing"
+        with patch('requests.get') as get_shopcart_by_userid_mock:
+            get_shopcart_by_userid_mock.return_value.status_code = 200
+            get_shopcart_by_userid_mock.return_value.json.return_value = [{"create_time": "2020-11-15T19:36:28.302839","id": 6,"update_time": "2020-11-15T19:36:28.302839","user_id": 101}]
+            with patch('service.service.add_item_to_shopcart') as post_shopcart_item_mock:
+                post_shopcart_item_mock.return_value.status_code=201
+                json = {"user_id": user_id, "amount": 4}
+                product = self._create_products(1)
+                resp = self.app.post("/api/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
+                self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+                self.assertEqual(resp.data, b'{"message": "Invalid User ID. Must be Integer"}\n')
+
     def test_purchase_unsuccessful_product_shopcart_error(self):
         '''Purchase a Product Shopcart Doesn't Exist (ShopCart Creation Error)'''
         user_id = 101
@@ -586,7 +655,7 @@ class TestProductServer(TestCase):
                 product = self._create_products(1)
                 resp = self.app.post("/api/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
                 self.assertEqual(resp.status_code,status.HTTP_400_BAD_REQUEST)
-                self.assertEqual(resp.data, b'"Cannot create shopcart so cannot add product into shopping cart"\n')
+                self.assertEqual(resp.data,b'{"message": "Cannot create shopcart so cannot add product into shopping cart"}\n' )
 
     def test_purchase_product_shopcart_unsuccessful_product(self):
         '''Purchase a Product (Product Adding Error) '''
@@ -602,4 +671,4 @@ class TestProductServer(TestCase):
                     product = self._create_products(1)
                     resp = self.app.post("/api/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
                     self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-                    self.assertEqual(resp.data, b'"Product not successfully added into the shopping cart"\n')
+                    self.assertEqual(resp.data, b'{"message": "Product not successfully added into the shopping cart"}\n')
