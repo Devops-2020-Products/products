@@ -199,21 +199,15 @@ class ProductResource(Resource):
 
         try:
             app.logger.debug('Payload = %s', api.payload)
-            product_name = product.name
-            product_description = product.description
-            product_category = product.category
-            product_price = product.price
             data = api.payload
-            product.deserialize(data)
-            product.id = product_id
-            if product.name == "":
-                product.name = product_name
-            if product.description == "":
-                product.description = product_description
-            if product.price == "":
-                product.price = product_price
-            if product.category == "":
-                product.category = product_category
+            if 'name' in data:
+                product.name = data['name']
+            if 'category' in data:
+                product.category = data['category']
+            if 'description' in data:
+                product.description = data['description']
+            if 'price' in data:
+                product.price = data['price']
             product.update()
         except DataValidationError as error:
             api.abort(status.HTTP_400_BAD_REQUEST, str(error))
