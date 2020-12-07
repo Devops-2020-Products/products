@@ -366,7 +366,7 @@ class PurchaseResource(Resource):
         app.logger.info("Request to purchase product with id: %s", product_id)
         check_content_type("application/json")
         request_body = request.get_json()
-        if product_id == "" or  request_body['amount'] == "" or request_body['user_id'] == "":
+        if product_id == "" or 'amount' not in request_body or 'user_id' not in request_body or request_body['amount'] == "" or request_body['user_id'] == "":
             api.abort(status.HTTP_400_BAD_REQUEST, "Fields cannot be empty")
         try:
             product_id = int(product_id)
