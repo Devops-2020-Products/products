@@ -343,7 +343,7 @@ class PurchaseResource(Resource):
     @api.doc('purchase_products')
     @api.response(200, 'Product successfully added into the shopping cart')
     @api.response(404, 'Product not found, or Product not successfully added into the shopping cart, or Cannot create shopcart so cannot add product into shopping cart, or Product was not added in the shopping cart because of an error')
-    @api.response(400, 'Fields cannot be empty, Invalid Product ID. Must be Integer, Invalid User ID. Must be Integer, or Invalid Amount. Must be Integer')
+    @api.response(400, 'Fields cannot be empty, or Invalid Product ID. Must be Integer, or Invalid User ID. Must be Integer, or Invalid Amount. Must be Integer')
     def post(self, product_id):
         """
         Purchase a product
