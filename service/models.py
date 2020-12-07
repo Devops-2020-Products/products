@@ -146,7 +146,7 @@ class Product(db.Model):
         :rtype: list
         """
         cls.logger.info("Processing name query for %s ...", name)
-        return cls.query.filter(func.lower(cls.name) == func.lower(name))
+        return cls.query.filter(func.lower(cls.name).contains(func.lower(name)))
 
     @classmethod
     def find_by_category(cls, category: str):
@@ -186,21 +186,21 @@ class Product(db.Model):
         """Query Products by the given name and category
         """
         cls.logger.info("Processing name and category query")
-        return cls.query.filter(func.lower(cls.name) == func.lower(name), func.lower(cls.category) == func.lower(category))
+        return cls.query.filter(func.lower(cls.name).contains(func.lower(name)), func.lower(cls.category) == func.lower(category))
 
     @classmethod
     def find_by_name_description(cls, name: str, description: str):
         """Query Products by the given name and description
         """
         cls.logger.info("Processing name and description query")
-        return cls.query.filter(func.lower(cls.name) == func.lower(name), func.lower(cls.description).contains(func.lower(description)))
+        return cls.query.filter(func.lower(cls.name).contains(func.lower(name)), func.lower(cls.description).contains(func.lower(description)))
 
     @classmethod
     def find_by_name_price(cls, name: str, minimum: float, maximum: float):
         """Query Products by the given name and price
         """
         cls.logger.info("Processing name and price query")
-        return cls.query.filter(func.lower(cls.name) == func.lower(name), cls.price.between(minimum, maximum))
+        return cls.query.filter(func.lower(cls.name).contains(func.lower(name)), cls.price.between(minimum, maximum))
 
     @classmethod
     def find_by_category_description(cls, category: str, description: str):
@@ -228,21 +228,21 @@ class Product(db.Model):
         """Query Products by the given name, category and description
         """
         cls.logger.info("Processing name, category and description query")
-        return cls.query.filter(func.lower(cls.name) == func.lower(name), func.lower(cls.category) == func.lower(category), func.lower(cls.description).contains(func.lower(description)))
+        return cls.query.filter(func.lower(cls.name).contains(func.lower(name)), func.lower(cls.category) == func.lower(category), func.lower(cls.description).contains(func.lower(description)))
 
     @classmethod
     def find_by_name_category_price(cls, name: str, category: str, minimum: float, maximum: float):
         """Query Products by the given name, category and price
         """
         cls.logger.info("Processing name, category and price query")
-        return cls.query.filter(func.lower(cls.name) == func.lower(name), func.lower(cls.category) == func.lower(category), cls.price.between(minimum, maximum))
+        return cls.query.filter(func.lower(cls.name).contains(func.lower(name)), func.lower(cls.category) == func.lower(category), cls.price.between(minimum, maximum))
 
     @classmethod
     def find_by_name_description_price(cls, name: str, description: str, minimum: float, maximum: float):
         """Query Products by the given name, description and price
         """
         cls.logger.info("Processing name, description and price query")
-        return cls.query.filter(func.lower(cls.name) == func.lower(name), func.lower(cls.description).contains(func.lower(description)), cls.price.between(minimum, maximum))
+        return cls.query.filter(func.lower(cls.name).contains(func.lower(name)), func.lower(cls.description).contains(func.lower(description)), cls.price.between(minimum, maximum))
 
     @classmethod
     def find_by_category_description_price(cls, category: str, description: str, minimum: float, maximum: float):
@@ -256,4 +256,4 @@ class Product(db.Model):
         """Query Products by the given name, category, description and price
         """
         cls.logger.info("Processing name, category, description and price query")
-        return cls.query.filter(func.lower(cls.name) == func.lower(name), func.lower(cls.category) == func.lower(category), func.lower(cls.description).contains(func.lower(description)), cls.price.between(minimum, maximum))
+        return cls.query.filter(func.lower(cls.name).contains(func.lower(name)), func.lower(cls.category) == func.lower(category), func.lower(cls.description).contains(func.lower(description)), cls.price.between(minimum, maximum))
