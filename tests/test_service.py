@@ -11,7 +11,7 @@ from unittest import TestCase
 from unittest.mock import patch
 from flask_api import status  # HTTP Status Codes
 from service.models import db
-from service.service import app, init_db
+from service.service import app, init_db, internal_server_error
 from tests.product_factory import ProductFactory
 
 SHOPCART_ENDPOINT = os.getenv('SHOPCART_ENDPOINT', 'http://localhost:5000/shopcarts')
@@ -95,7 +95,7 @@ class TestProductServer(TestCase):
             new_product["price"], test_product.price, "Prices do not match"
         )
 
-        resp = self.app.get(location, content_type="application/json")
+        resp = self.app.get(location)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         new_product = resp.get_json()
         self.assertEqual(new_product["name"], test_product.name, "Names do not match")
@@ -132,9 +132,7 @@ class TestProductServer(TestCase):
         """ Get a single product by its ID """
         # get the id of a product
         test_product = self._create_products(1)[0]
-        resp = self.app.get(
-            "/api/products/{}".format(test_product.id), content_type="application/json"
-        )
+        resp = self.app.get("/api/products/{}".format(test_product.id))
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
         self.assertEqual(data["name"], test_product.name)
@@ -154,14 +152,11 @@ class TestProductServer(TestCase):
     def test_delete_a_product(self):
         """ Delete a Product """
         test_product = self._create_products(1)[0]
-        resp = self.app.delete(
-            "/api/products/{}".format(test_product.id), content_type="application/json")
+        resp = self.app.delete("/api/products/{}".format(test_product.id))
         self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(len(resp.data), 0)
         # make sure they are deleted
-        resp = self.app.get(
-            "/api/products/{}".format(test_product.id), content_type="application/json"
-        )
+        resp = self.app.get("/api/products/{}".format(test_product.id))
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_delete_product_bad_request(self):
@@ -261,13 +256,6 @@ class TestProductServer(TestCase):
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         resp = self.app.put(
             "/api/products/3.3",
-            json=new_product,
-            content_type="application/json")
-        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-
-        new_product.pop("name")
-        resp = self.app.put(
-            "/api/products/{}".format(new_product["id"]),
             json=new_product,
             content_type="application/json")
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
@@ -672,3 +660,40 @@ class TestProductServer(TestCase):
                     resp = self.app.post("/api/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
                     self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
                     self.assertEqual(resp.data, b'{"message": "Product not successfully added into the shopping cart"}\n')
+
+    def test_data_validation_error(self):
+        '''Data Validation Error '''
+        test_product = ProductFactory()
+        data = test_product.serialize()
+        data.pop('name', None)
+        resp = self.app.post(
+            "/api/products", json=data, content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn(b'Bad Request', resp.data)
+
+    def test_404_not_found_error(self):
+        '''Resources Not Found Error '''
+        resp = self.app.get("/products/{}")
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertIn(b'Not Found', resp.data)
+
+    def test_method_not_allowed_error(self):
+        '''Test Method Not Allowed Error '''
+        resp = self.app.post("/")
+        self.assertEqual(resp.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertIn(b'Method not Allowed', resp.data)
+
+    def test_unsupported_media_type_error(self):
+        '''Unsupported Media Requests '''
+        test_product = ProductFactory()
+        resp = self.app.post(
+            "/api/products", json=test_product.serialize(), content_type="text/javascript"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+        self.assertIn(b'{"message": "Content-Type must be application/json"}\n', resp.data)
+
+    def test_internal_server_error(self):
+        '''Internal Server Error '''
+        resp = internal_server_error("internal serval error")
+        self.assertEqual(resp[1], status.HTTP_500_INTERNAL_SERVER_ERROR)

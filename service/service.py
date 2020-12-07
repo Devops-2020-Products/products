@@ -12,7 +12,6 @@ import re
 import requests
 from flask import jsonify, request, make_response, abort, render_template
 from flask_api import status  # HTTP Status Codes
-from werkzeug.exceptions import NotFound
 
 # For this example we'll use SQLAlchemy, a popular ORM that supports a
 # variety of backends including SQLite, MySQL, and PostgreSQL
@@ -81,49 +80,73 @@ product_args.add_argument('maximum', type=float, required=False, help='The maxim
 # Error Handlers
 ######################################################################
 
-# @app.errorhandler(DataValidationError)
-# def request_validation_error(error):
-#     """ Handles Value Errors from bad data """
-#     return bad_request(error)
+@app.errorhandler(DataValidationError)
+def request_validation_error(error):
+    """ Handles Value Errors from bad data """
+    return bad_request(error)
 
-# @app.errorhandler(status.HTTP_400_BAD_REQUEST)
-# def bad_request(error):
-#     """ Handles bad requests with 400_BAD_REQUEST """
-#     message = str(error)
-#     app.logger.warning(message)
-#     return (
-#         jsonify(
-#             status=status.HTTP_400_BAD_REQUEST, error="Bad Request", message=message
-#         ),
-#         status.HTTP_400_BAD_REQUEST,
-#     )
+@app.errorhandler(status.HTTP_400_BAD_REQUEST)
+def bad_request(error):
+    """ Handles bad requests with 400_BAD_REQUEST """
+    message = str(error)
+    app.logger.warning(message)
+    return (
+        jsonify(
+            status=status.HTTP_400_BAD_REQUEST, error="Bad Request", message=message
+        ),
+        status.HTTP_400_BAD_REQUEST,
+    )
 
-# @app.errorhandler(status.HTTP_404_NOT_FOUND)
-# def not_found(error):
-#     """ Handles resources not found with 404_NOT_FOUND """
-#     message = str(error)
-#     app.logger.warning(message)
-#     return (
-#         jsonify(
-#             status=status.HTTP_404_NOT_FOUND, error="Not Found", message=message
-#         ),
-#         status.HTTP_404_NOT_FOUND,
-#     )
+@app.errorhandler(status.HTTP_404_NOT_FOUND)
+def not_found(error):
+    """ Handles resources not found with 404_NOT_FOUND """
+    message = str(error)
+    app.logger.warning(message)
+    return (
+        jsonify(
+            status=status.HTTP_404_NOT_FOUND, error="Not Found", message=message
+        ),
+        status.HTTP_404_NOT_FOUND,
+    )
 
+@app.errorhandler(status.HTTP_405_METHOD_NOT_ALLOWED)
+def method_not_supported(error):
+    """ Handles unsuppoted HTTP methods with 405_METHOD_NOT_SUPPORTED """
+    app.logger.warning(str(error))
+    return (
+        jsonify(
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+            error="Method not Allowed",
+            message=str(error),
+        ),
+        status.HTTP_405_METHOD_NOT_ALLOWED,
+    )
 
-# @app.errorhandler(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
-# def mediatype_not_supported(error):
-#     """ Handles unsupported media requests with 415_UNSUPPORTED_MEDIA_TYPE """
-#     message = str(error)
-#     app.logger.warning(message)
-#     return (
-#         jsonify(
-#             status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-#             error="Unsupported media type",
-#             message=message,
-#         ),
-#         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-#     )
+@app.errorhandler(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+def mediatype_not_supported(error):
+    """ Handles unsuppoted media requests with 415_UNSUPPORTED_MEDIA_TYPE """
+    app.logger.warning(str(error))
+    return (
+        jsonify(
+            status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            error="Unsupported media type",
+            message=str(error),
+        ),
+        status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+    )
+
+@app.errorhandler(status.HTTP_500_INTERNAL_SERVER_ERROR)
+def internal_server_error(error):
+    """ Handles unexpected server error with 500_SERVER_ERROR """
+    app.logger.error(str(error))
+    return (
+        jsonify(
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            error="Internal Server Error",
+            message=str(error),
+        ),
+        status.HTTP_500_INTERNAL_SERVER_ERROR,
+    )
 
 ######################################################################
 # GET INDEX
@@ -133,7 +156,7 @@ def index():
     """ Root URL response """
     return render_template('index.html')
 
-@api.route('/products/<product_id>')
+@api.route('/products/<product_id>', strict_slashes=False)
 @api.param('product_id', 'The Product identifier')
 class ProductResource(Resource):
     """
@@ -197,20 +220,17 @@ class ProductResource(Resource):
             app.logger.info("Product with id [%s] was not found.", product_id)
             api.abort(status.HTTP_404_NOT_FOUND, "Product with id '{}' was not found.".format(product_id))
 
-        try:
-            app.logger.debug('Payload = %s', api.payload)
-            data = api.payload
-            if 'name' in data:
-                product.name = data['name']
-            if 'category' in data:
-                product.category = data['category']
-            if 'description' in data:
-                product.description = data['description']
-            if 'price' in data:
-                product.price = data['price']
-            product.update()
-        except DataValidationError as error:
-            api.abort(status.HTTP_400_BAD_REQUEST, str(error))
+        app.logger.debug('Payload = %s', api.payload)
+        data = api.payload
+        if 'name' in data and data['name'] != "":
+            product.name = data['name']
+        if 'category' in data and data['category'] != "":
+            product.category = data['category']
+        if 'description' in data and data['description'] != "":
+            product.description = data['description']
+        if 'price' in data and data['price'] != "":
+            product.price = data['price']
+        product.update()
         app.logger.info("Product with id [%s] updated.", product.id)
         return product.serialize(), status.HTTP_200_OK
 
@@ -237,7 +257,7 @@ class ProductResource(Resource):
         app.logger.info("Product with id [%s] delete complete.", product_id)
         return make_response('', status.HTTP_204_NO_CONTENT)
 
-@api.route('/products')
+@api.route('/products', strict_slashes=False)
 class ProductCollection(Resource):
     """ Handles all interactions with collections of Products """
     ######################################################################
@@ -326,7 +346,7 @@ class ProductCollection(Resource):
         app.logger.info("Returning %d products.", len(results))
         return results, status.HTTP_200_OK
 
-@api.route('/products/<product_id>/purchase')
+@api.route('/products/<product_id>/purchase', strict_slashes=False)
 @api.param('product_id', 'The Product identifier')
 @api.expect(purchase_model)
 class PurchaseResource(Resource):
