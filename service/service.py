@@ -61,11 +61,11 @@ product_model = api.inherit(
 
 purchase_model = api.model('Purchase', {
     'id': fields.Integer(required=True,
-                          description='The id of the Product'),
+                        description='The id of the Product'),
     'user_id': fields.Integer(required=True,
                               description='The category of Product (e.g., food, technology, etc.)'),
     'amount': fields.Integer(required=True,
-                          description='The amount of the Product')
+                             description='The amount of the Product')
 })
 
 # query string arguments
@@ -241,7 +241,7 @@ class ProductResource(Resource):
         if product:
             product.delete()
         app.logger.info("Product with id [%s] delete complete.", product_id)
-        return '', status.HTTP_204_NO_CONTENT
+        return make_response('', status.HTTP_204_NO_CONTENT)
 
 @api.route('/products')
 class ProductCollection(Resource):
@@ -390,7 +390,7 @@ class PurchaseResource(Resource):
                 new_item["price"] = product["price"]
                 add_into_shopcart = add_item_to_shopcart(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id), header, new_item)
                 if add_into_shopcart.status_code == 201:
-                    return 'Product successfully added into the shopping cart', status.HTTP_200_OK
+                    return make_response('Product successfully added into the shopping cart', status.HTTP_200_OK)
                 return api.abort(status.HTTP_400_BAD_REQUEST, 'Product not successfully added into the shopping cart')
             return api.abort(status.HTTP_400_BAD_REQUEST, 'Cannot create shopcart so cannot add product into shopping cart')
         shopcart_id = r_json[0]['id']
@@ -402,8 +402,8 @@ class PurchaseResource(Resource):
         new_item["price"] = product["price"]
         add_into_shopcart = add_item_to_shopcart(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id), header, new_item)
         if add_into_shopcart.status_code == 201:
-            return 'Product successfully added into the shopping cart', status.HTTP_200_OK
-        return 'Product was not added in the shopping cart because of an error', status.HTTP_404_NOT_FOUND
+            return make_response('Product successfully added into the shopping cart', status.HTTP_200_OK)
+        return make_response('Product was not added in the shopping cart because of an error', status.HTTP_404_NOT_FOUND)
 
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
