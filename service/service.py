@@ -5,7 +5,6 @@ Describe what your service does here
 """
 
 import os
-import re
 #import sys
 #import logging
 #import json
@@ -49,20 +48,25 @@ create_model = api.model('Product', {
                           description='The price of the Product')
 })
 
-product_model = api.inherit(
-    'ProductModel',
-    create_model,
-    {
-        'id': fields.String(readOnly=True,
-                            description='The unique id assigned internally by service'),
-    }
-)
+product_model = api.model('Product', {
+    'name': fields.String(required=True,
+                          description='The name of the Product'),
+    'category': fields.String(required=True,
+                              description='The category of Product (e.g., food, technology, etc.)'),
+    'description': fields.String(required=True,
+                                 description='The description of the Product'),
+    'price': fields.Float(required=True,
+                          description='The price of the Product'),
+    'id': fields.String(readOnly=True,
+                            description='The unique id assigned internally by service')
+})
+
 
 purchase_model = api.model('Purchase', {
     'id': fields.Integer(required=True,
                         description='The id of the Product'),
     'user_id': fields.Integer(required=True,
-                              description='The category of Product (e.g., food, technology, etc.)'),
+                              description='The user id of the person purchasing the Product'),
     'amount': fields.Integer(required=True,
                              description='The amount of the Product')
 })

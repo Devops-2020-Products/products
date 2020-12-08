@@ -575,7 +575,7 @@ class TestProductServer(TestCase):
                 resp = self.app.post("/api/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
                 self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
                 self.assertEqual(resp.data, b'{"message": "Fields cannot be empty"}\n')
-    
+
     def test_purchase_product_empty_amount(self):
         '''Purchase a Product Empty Amount '''
         user_id = 101
@@ -602,7 +602,7 @@ class TestProductServer(TestCase):
                 resp = self.app.post("/api/products/{}/purchase".format("test"), json=json, content_type="application/json")
                 self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
                 self.assertEqual(resp.data, b'{"message": "Invalid Product ID. Must be Integer"}\n')
-    
+
     def test_purchase_amount_not_int(self):
         '''Purchase a Product Amount not Int '''
         user_id = 101
@@ -617,7 +617,7 @@ class TestProductServer(TestCase):
                 self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
                 self.assertEqual(resp.data, b'{"message": "Invalid Amount. Must be Integer"}\n')
 
-    def test_purchase_userID_not_int(self):
+    def test_purchase_user_id_not_int(self):
         '''Purchase a Product User ID not Int '''
         user_id = "testing"
         with patch('requests.get') as get_shopcart_by_userid_mock:
