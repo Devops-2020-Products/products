@@ -3,7 +3,7 @@ coverage:
     # pull-requests only
     patch:
       default:
-        target: 95%
+        target: 90%
     project:
       default:
         target: 95%
