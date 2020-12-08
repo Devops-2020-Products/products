@@ -255,7 +255,7 @@ class ProductResource(Resource):
         if product:
             product.delete()
         app.logger.info("Product with id [%s] delete complete.", product_id)
-        return make_response('', status.HTTP_204_NO_CONTENT)
+        return make_response(jsonify(message = ''), status.HTTP_204_NO_CONTENT)
 
 @api.route('/products', strict_slashes=False)
 class ProductCollection(Resource):
@@ -388,7 +388,7 @@ class PurchaseResource(Resource):
             api.abort(status.HTTP_400_BAD_REQUEST, "Invalid Amount. Must be Integer")
         header = {'Content-Type': 'application/json'}
         resp = requests.get('{}?user_id={}'.format(SHOPCART_ENDPOINT, user_id))
-        #print('{}?user_id={}'.format(SHOPCART_ENDPOINT,user_id))
+        app.logger.info("Trying to purchase product")
         r_json = resp.json()
         if len(r_json) == 0:
             info_json = {"user_id": user_id}
@@ -404,7 +404,7 @@ class PurchaseResource(Resource):
                 new_item["price"] = product["price"]
                 add_into_shopcart = add_item_to_shopcart(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id), header, new_item)
                 if add_into_shopcart.status_code == 201:
-                    return make_response('Product successfully added into the shopping cart', status.HTTP_200_OK)
+                    return make_response(jsonify(message = 'Product successfully added into the shopping cart'), status.HTTP_200_OK)
                 return api.abort(status.HTTP_400_BAD_REQUEST, 'Product not successfully added into the shopping cart')
             return api.abort(status.HTTP_400_BAD_REQUEST, 'Cannot create shopcart so cannot add product into shopping cart')
         shopcart_id = r_json[0]['id']
@@ -416,8 +416,8 @@ class PurchaseResource(Resource):
         new_item["price"] = product["price"]
         add_into_shopcart = add_item_to_shopcart(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id), header, new_item)
         if add_into_shopcart.status_code == 201:
-            return make_response('Product successfully added into the shopping cart', status.HTTP_200_OK)
-        return make_response('Product was not added in the shopping cart because of an error', status.HTTP_404_NOT_FOUND)
+            return make_response(jsonify(message = 'Product successfully added into the shopping cart'), status.HTTP_200_OK)
+        return api.abort(status.HTTP_400_BAD_REQUEST, 'Product was not added in the shopping cart because of an error')
 
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S

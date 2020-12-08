@@ -11,7 +11,6 @@ $(function () {
         $("#product_category").val(res.category);
         $("#product_description").val(res.description);
         $("#product_price").val(res.price);
-        $("#product_price_range").val("");
     }
 
     /// Clears all form fields
@@ -25,6 +24,9 @@ $(function () {
         $("#product_search_name").val("");
         $("#product_search_category").val("");
         $("#product_search_description").val("");
+        $("#product_purchase_id").val("");
+        $("#product_user_id").val("");
+        $("#product_amount").val("");
     }
 
     // Updates the flash message area
@@ -59,11 +61,13 @@ $(function () {
         });
 
         ajax.done(function(res){
+            console.log(data)
             update_form_data(res)
             flash_message("Product has been Created!")
         });
 
         ajax.fail(function(res){
+            console.log(data)
             flash_message(res.responseJSON.message)
         });
     });
@@ -97,11 +101,13 @@ $(function () {
                 })
 
             ajax.done(function(res){
+                console.log(data)
                 update_form_data(res)
                 flash_message("Product has been Updated!")
             });
 
             ajax.fail(function(res){
+                console.log(data)
                 flash_message(res.responseJSON.message)
             });
         } else {
@@ -217,11 +223,13 @@ $(function () {
             })
 
             ajax.done(function(res){
+                console.log(data)
                 clear_form_data()
                 flash_message("Product has been Purchased!")
             });
 
             ajax.fail(function(res){
+                console.log(data)
                 flash_message(res.responseJSON.message)
             });
         } else {
