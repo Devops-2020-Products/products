@@ -12,7 +12,6 @@ import re
 import requests
 from flask import jsonify, request, make_response, abort, render_template
 from flask_api import status  # HTTP Status Codes
-from werkzeug.exceptions import NotFound
 
 # For this example we'll use SQLAlchemy, a popular ORM that supports a
 # variety of backends including SQLite, MySQL, and PostgreSQL
@@ -61,11 +60,11 @@ product_model = api.inherit(
 
 purchase_model = api.model('Purchase', {
     'id': fields.Integer(required=True,
-                          description='The id of the Product'),
+                        description='The id of the Product'),
     'user_id': fields.Integer(required=True,
                               description='The category of Product (e.g., food, technology, etc.)'),
     'amount': fields.Integer(required=True,
-                          description='The amount of the Product')
+                             description='The amount of the Product')
 })
 
 # query string arguments
@@ -81,49 +80,73 @@ product_args.add_argument('maximum', type=float, required=False, help='The maxim
 # Error Handlers
 ######################################################################
 
-# @app.errorhandler(DataValidationError)
-# def request_validation_error(error):
-#     """ Handles Value Errors from bad data """
-#     return bad_request(error)
+@app.errorhandler(DataValidationError)
+def request_validation_error(error):
+    """ Handles Value Errors from bad data """
+    return bad_request(error)
 
-# @app.errorhandler(status.HTTP_400_BAD_REQUEST)
-# def bad_request(error):
-#     """ Handles bad requests with 400_BAD_REQUEST """
-#     message = str(error)
-#     app.logger.warning(message)
-#     return (
-#         jsonify(
-#             status=status.HTTP_400_BAD_REQUEST, error="Bad Request", message=message
-#         ),
-#         status.HTTP_400_BAD_REQUEST,
-#     )
+@app.errorhandler(status.HTTP_400_BAD_REQUEST)
+def bad_request(error):
+    """ Handles bad requests with 400_BAD_REQUEST """
+    message = str(error)
+    app.logger.warning(message)
+    return (
+        jsonify(
+            status=status.HTTP_400_BAD_REQUEST, error="Bad Request", message=message
+        ),
+        status.HTTP_400_BAD_REQUEST,
+    )
 
-# @app.errorhandler(status.HTTP_404_NOT_FOUND)
-# def not_found(error):
-#     """ Handles resources not found with 404_NOT_FOUND """
-#     message = str(error)
-#     app.logger.warning(message)
-#     return (
-#         jsonify(
-#             status=status.HTTP_404_NOT_FOUND, error="Not Found", message=message
-#         ),
-#         status.HTTP_404_NOT_FOUND,
-#     )
+@app.errorhandler(status.HTTP_404_NOT_FOUND)
+def not_found(error):
+    """ Handles resources not found with 404_NOT_FOUND """
+    message = str(error)
+    app.logger.warning(message)
+    return (
+        jsonify(
+            status=status.HTTP_404_NOT_FOUND, error="Not Found", message=message
+        ),
+        status.HTTP_404_NOT_FOUND,
+    )
 
+@app.errorhandler(status.HTTP_405_METHOD_NOT_ALLOWED)
+def method_not_supported(error):
+    """ Handles unsuppoted HTTP methods with 405_METHOD_NOT_SUPPORTED """
+    app.logger.warning(str(error))
+    return (
+        jsonify(
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+            error="Method not Allowed",
+            message=str(error),
+        ),
+        status.HTTP_405_METHOD_NOT_ALLOWED,
+    )
 
-# @app.errorhandler(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
-# def mediatype_not_supported(error):
-#     """ Handles unsupported media requests with 415_UNSUPPORTED_MEDIA_TYPE """
-#     message = str(error)
-#     app.logger.warning(message)
-#     return (
-#         jsonify(
-#             status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-#             error="Unsupported media type",
-#             message=message,
-#         ),
-#         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-#     )
+@app.errorhandler(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+def mediatype_not_supported(error):
+    """ Handles unsuppoted media requests with 415_UNSUPPORTED_MEDIA_TYPE """
+    app.logger.warning(str(error))
+    return (
+        jsonify(
+            status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            error="Unsupported media type",
+            message=str(error),
+        ),
+        status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+    )
+
+@app.errorhandler(status.HTTP_500_INTERNAL_SERVER_ERROR)
+def internal_server_error(error):
+    """ Handles unexpected server error with 500_SERVER_ERROR """
+    app.logger.error(str(error))
+    return (
+        jsonify(
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            error="Internal Server Error",
+            message=str(error),
+        ),
+        status.HTTP_500_INTERNAL_SERVER_ERROR,
+    )
 
 ######################################################################
 # GET INDEX
@@ -133,7 +156,7 @@ def index():
     """ Root URL response """
     return render_template('index.html')
 
-@api.route('/products/<product_id>')
+@api.route('/products/<product_id>', strict_slashes=False)
 @api.param('product_id', 'The Product identifier')
 class ProductResource(Resource):
     """
@@ -197,26 +220,17 @@ class ProductResource(Resource):
             app.logger.info("Product with id [%s] was not found.", product_id)
             api.abort(status.HTTP_404_NOT_FOUND, "Product with id '{}' was not found.".format(product_id))
 
-        try:
-            app.logger.debug('Payload = %s', api.payload)
-            product_name = product.name
-            product_description = product.description
-            product_category = product.category
-            product_price = product.price
-            data = api.payload
-            product.deserialize(data)
-            product.id = product_id
-            if product.name == "":
-                product.name = product_name
-            if product.description == "":
-                product.description = product_description
-            if product.price == "":
-                product.price = product_price
-            if product.category == "":
-                product.category = product_category
-            product.update()
-        except DataValidationError as error:
-            api.abort(status.HTTP_400_BAD_REQUEST, str(error))
+        app.logger.debug('Payload = %s', api.payload)
+        data = api.payload
+        if 'name' in data and data['name'] != "":
+            product.name = data['name']
+        if 'category' in data and data['category'] != "":
+            product.category = data['category']
+        if 'description' in data and data['description'] != "":
+            product.description = data['description']
+        if 'price' in data and data['price'] != "":
+            product.price = data['price']
+        product.update()
         app.logger.info("Product with id [%s] updated.", product.id)
         return product.serialize(), status.HTTP_200_OK
 
@@ -241,9 +255,9 @@ class ProductResource(Resource):
         if product:
             product.delete()
         app.logger.info("Product with id [%s] delete complete.", product_id)
-        return '', status.HTTP_204_NO_CONTENT
+        return make_response(jsonify(message = ''), status.HTTP_204_NO_CONTENT)
 
-@api.route('/products')
+@api.route('/products', strict_slashes=False)
 class ProductCollection(Resource):
     """ Handles all interactions with collections of Products """
     ######################################################################
@@ -332,7 +346,7 @@ class ProductCollection(Resource):
         app.logger.info("Returning %d products.", len(results))
         return results, status.HTTP_200_OK
 
-@api.route('/products/<product_id>/purchase')
+@api.route('/products/<product_id>/purchase', strict_slashes=False)
 @api.param('product_id', 'The Product identifier')
 @api.expect(purchase_model)
 class PurchaseResource(Resource):
@@ -352,7 +366,7 @@ class PurchaseResource(Resource):
         app.logger.info("Request to purchase product with id: %s", product_id)
         check_content_type("application/json")
         request_body = request.get_json()
-        if product_id == "" or  request_body['amount'] == "" or request_body['user_id'] == "":
+        if product_id == "" or 'amount' not in request_body or 'user_id' not in request_body or request_body['amount'] == "" or request_body['user_id'] == "":
             api.abort(status.HTTP_400_BAD_REQUEST, "Fields cannot be empty")
         try:
             product_id = int(product_id)
@@ -374,7 +388,7 @@ class PurchaseResource(Resource):
             api.abort(status.HTTP_400_BAD_REQUEST, "Invalid Amount. Must be Integer")
         header = {'Content-Type': 'application/json'}
         resp = requests.get('{}?user_id={}'.format(SHOPCART_ENDPOINT, user_id))
-        #print('{}?user_id={}'.format(SHOPCART_ENDPOINT,user_id))
+        app.logger.info("Trying to purchase product")
         r_json = resp.json()
         if len(r_json) == 0:
             info_json = {"user_id": user_id}
@@ -390,7 +404,7 @@ class PurchaseResource(Resource):
                 new_item["price"] = product["price"]
                 add_into_shopcart = add_item_to_shopcart(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id), header, new_item)
                 if add_into_shopcart.status_code == 201:
-                    return 'Product successfully added into the shopping cart', status.HTTP_200_OK
+                    return make_response(jsonify(message = 'Product successfully added into the shopping cart'), status.HTTP_200_OK)
                 return api.abort(status.HTTP_400_BAD_REQUEST, 'Product not successfully added into the shopping cart')
             return api.abort(status.HTTP_400_BAD_REQUEST, 'Cannot create shopcart so cannot add product into shopping cart')
         shopcart_id = r_json[0]['id']
@@ -402,8 +416,8 @@ class PurchaseResource(Resource):
         new_item["price"] = product["price"]
         add_into_shopcart = add_item_to_shopcart(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id), header, new_item)
         if add_into_shopcart.status_code == 201:
-            return 'Product successfully added into the shopping cart', status.HTTP_200_OK
-        return 'Product was not added in the shopping cart because of an error', status.HTTP_404_NOT_FOUND
+            return make_response(jsonify(message = 'Product successfully added into the shopping cart'), status.HTTP_200_OK)
+        return api.abort(status.HTTP_404_NOT_FOUND, 'Product was not added in the shopping cart because of an error')
 
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
