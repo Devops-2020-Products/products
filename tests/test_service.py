@@ -518,7 +518,7 @@ class TestProductServer(TestCase):
                 product = self._create_products(1)
                 resp = self.app.post("/api/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
                 self.assertEqual(resp.status_code, status.HTTP_200_OK)
-                self.assertEqual(resp.data, b'Product successfully added into the shopping cart')
+                self.assertEqual(resp.data, b'{"message":"Product successfully added into the shopping cart"}\n')
 
     def test_purchase_product_shopcart_no_exist(self):
         '''Purchase a Product Shopcart Doesn't Exist Successfully'''
@@ -534,7 +534,7 @@ class TestProductServer(TestCase):
                     product = self._create_products(1)
                     resp = self.app.post("/api/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
                     self.assertEqual(resp.status_code, status.HTTP_200_OK)
-                    self.assertEqual(resp.data, b'Product successfully added into the shopping cart')
+                    self.assertEqual(resp.data, b'{"message":"Product successfully added into the shopping cart"}\n')
 
     def test_purchase_product_not_found(self):
         '''Purchase a Product That's Not Found'''
@@ -560,7 +560,7 @@ class TestProductServer(TestCase):
                 product = self._create_products(1)
                 resp = self.app.post("/api/products/{}/purchase".format(product[0].id), json=json, content_type="application/json")
                 self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
-                self.assertEqual(resp.data, b'Product was not added in the shopping cart because of an error')
+                self.assertEqual(resp.data, b'{"message": "Product was not added in the shopping cart because of an error"}\n')
 
     def test_purchase_product_empty_user_id(self):
         '''Purchase a Product Empty User ID'''

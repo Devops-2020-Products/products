@@ -417,7 +417,7 @@ class PurchaseResource(Resource):
         add_into_shopcart = add_item_to_shopcart(SHOPCART_ENDPOINT + "/{}/items".format(shopcart_id), header, new_item)
         if add_into_shopcart.status_code == 201:
             return make_response(jsonify(message = 'Product successfully added into the shopping cart'), status.HTTP_200_OK)
-        return api.abort(status.HTTP_400_BAD_REQUEST, 'Product was not added in the shopping cart because of an error')
+        return api.abort(status.HTTP_404_NOT_FOUND, 'Product was not added in the shopping cart because of an error')
 
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
