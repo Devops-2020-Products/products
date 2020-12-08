@@ -88,21 +88,25 @@ $(function () {
             "price": price
         };
 
-        var ajax = $.ajax({
-                type: "PUT",
-                url: "/api/products/" + product_id,
-                contentType: "application/json",
-                data: JSON.stringify(data)
-            })
+        if (product_id) {
+            var ajax = $.ajax({
+                    type: "PUT",
+                    url: "/api/products/" + product_id,
+                    contentType: "application/json",
+                    data: JSON.stringify(data)
+                })
 
-        ajax.done(function(res){
-            update_form_data(res)
-            flash_message("Product has been Updated!")
-        });
+            ajax.done(function(res){
+                update_form_data(res)
+                flash_message("Product has been Updated!")
+            });
 
-        ajax.fail(function(res){
-            flash_message(res.responseJSON.message)
-        });
+            ajax.fail(function(res){
+                flash_message(res.responseJSON.message)
+            });
+        } else {
+            flash_message("Product ID can not be empty")
+        }
 
     });
 
@@ -114,45 +118,49 @@ $(function () {
 
         var product_id = $("#product_id").val();
 
-        var ajax = $.ajax({
-            type: "GET",
-            url: "/api/products/" + product_id
-        })
+        if (product_id) {
+            var ajax = $.ajax({
+                type: "GET",
+                url: "/api/products/" + product_id
+            })
 
-        ajax.done(function(res){
-            //alert(res.toSource())
-            update_form_data(res)
-            $("#search_results").empty();
-            $("#search_results").append('<table class="table-striped" cellpadding="10">');
-            var header = '<tr>'
-            header += '<th style="width:10%">ID</th>'
-            header += '<th style="width:40%">Name</th>'
-            header += '<th style="width:40%">Description</th>'
-            header += '<th style="width:40%">Category</th>'
-            header += '<th style="width:10%">Price</th></tr>'
-            $("#search_results").append(header);
-            var row = "<tr><td>"+res.id+"</td><td>"+res.name+"</td><td>"+res.description+"</td><td>"+res.category+"</td><td>"+res.price+"</td></tr>";
-            $("#search_results").append(row);
+            ajax.done(function(res){
+                //alert(res.toSource())
+                update_form_data(res)
+                $("#search_results").empty();
+                $("#search_results").append('<table class="table-striped" cellpadding="10">');
+                var header = '<tr>'
+                header += '<th style="width:10%">ID</th>'
+                header += '<th style="width:40%">Name</th>'
+                header += '<th style="width:40%">Description</th>'
+                header += '<th style="width:40%">Category</th>'
+                header += '<th style="width:10%">Price</th></tr>'
+                $("#search_results").append(header);
+                var row = "<tr><td>"+res.id+"</td><td>"+res.name+"</td><td>"+res.description+"</td><td>"+res.category+"</td><td>"+res.price+"</td></tr>";
+                $("#search_results").append(row);
 
-            $("#search_results").append('</table>');
-            flash_message("Product has been Retrieved!")
-        });
+                $("#search_results").append('</table>');
+                flash_message("Product has been Retrieved!")
+            });
 
-        ajax.fail(function(res){
-            clear_form_data()
-            $("#search_results").empty();
-            $("#search_results").append('<table class="table-striped" cellpadding="10">');
-            var header = '<tr>'
-            header += '<th style="width:10%">ID</th>'
-            header += '<th style="width:40%">Name</th>'
-            header += '<th style="width:40%">Description</th>'
-            header += '<th style="width:40%">Category</th>'
-            header += '<th style="width:10%">Price</th></tr>'
-            $("#search_results").append(header);
+            ajax.fail(function(res){
+                clear_form_data()
+                $("#search_results").empty();
+                $("#search_results").append('<table class="table-striped" cellpadding="10">');
+                var header = '<tr>'
+                header += '<th style="width:10%">ID</th>'
+                header += '<th style="width:40%">Name</th>'
+                header += '<th style="width:40%">Description</th>'
+                header += '<th style="width:40%">Category</th>'
+                header += '<th style="width:10%">Price</th></tr>'
+                $("#search_results").append(header);
 
-            $("#search_results").append('</table>');
-            flash_message(res.responseJSON.message)
-        });
+                $("#search_results").append('</table>');
+                flash_message(res.responseJSON.message)
+            });
+        } else {
+            flash_message("Product ID can not be empty")
+        }
 
     });
 
@@ -164,21 +172,25 @@ $(function () {
 
         var product_id = $("#product_id").val();
 
-        var ajax = $.ajax({
-            type: "DELETE",
-            url: "/api/products/" + product_id,
-            contentType: "application/json",
-            data: '',
-        })
+        if (product_id) {
+            var ajax = $.ajax({
+                type: "DELETE",
+                url: "/api/products/" + product_id,
+                contentType: "application/json",
+                data: '',
+            })
 
-        ajax.done(function(res){
-            clear_form_data()
-            flash_message("Product has been Deleted!")
-        });
+            ajax.done(function(res){
+                clear_form_data()
+                flash_message("Product has been Deleted!")
+            });
 
-        ajax.fail(function(res){
-            flash_message(res.responseJSON.message)
-        });
+            ajax.fail(function(res){
+                flash_message(res.responseJSON.message)
+            });
+        } else {
+            flash_message("Product ID can not be empty")
+        }
     });
 
     // ****************************************
@@ -196,21 +208,25 @@ $(function () {
             "user_id": user_id
         };
 
-        var ajax = $.ajax({
-            type: "POST",
-            url: "/api/products/" + product_id + "/purchase",
-            contentType: "application/json",
-            data: JSON.stringify(data),
-        })
+        if (product_id) {
+            var ajax = $.ajax({
+                type: "POST",
+                url: "/api/products/" + product_id + "/purchase",
+                contentType: "application/json",
+                data: JSON.stringify(data),
+            })
 
-        ajax.done(function(res){
-            clear_form_data()
-            flash_message("Product has been Purchased!")
-        });
+            ajax.done(function(res){
+                clear_form_data()
+                flash_message("Product has been Purchased!")
+            });
 
-        ajax.fail(function(res){
-            flash_message(res.responseJSON.message)
-        });
+            ajax.fail(function(res){
+                flash_message(res.responseJSON.message)
+            });
+        } else {
+            flash_message("Product ID can not be empty")
+        }
     });
 
     // ****************************************
