@@ -260,6 +260,24 @@ class TestProductServer(TestCase):
             content_type="application/json")
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
+        test_product = ProductFactory()
+        test_product_name = test_product.name
+        test_product_description = test_product.description
+        test_product_price = test_product.price
+        resp = self.app.post(
+            "/api/products", json=test_product.serialize(), content_type="application/json")
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        # update the product
+        new_product = resp.get_json()
+        new_product["price"] = "a"
+        resp = self.app.put(
+            "/api/products/{}".format(new_product["id"]),
+            json=new_product,
+            content_type="application/json")
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+
     def test_get_product_list(self):
         """ Get a list of Products """
         self._create_products(5)

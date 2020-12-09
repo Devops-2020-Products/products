@@ -226,6 +226,11 @@ class ProductResource(Resource):
 
         app.logger.debug('Payload = %s', api.payload)
         data = api.payload
+        try:
+            if 'price' in data and data['price'] != "":
+                data['price'] = float(data['price'])
+        except ValueError:
+            api.abort(status.HTTP_400_BAD_REQUEST, "Incorrect format for price")
         if 'name' in data and data['name'] != "":
             product.name = data['name']
         if 'category' in data and data['category'] != "":
