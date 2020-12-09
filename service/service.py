@@ -226,14 +226,19 @@ class ProductResource(Resource):
 
         app.logger.debug('Payload = %s', api.payload)
         data = api.payload
-        if 'name' in data and data['name'] != "":
-            product.name = data['name']
-        if 'category' in data and data['category'] != "":
-            product.category = data['category']
-        if 'description' in data and data['description'] != "":
-            product.description = data['description']
-        if 'price' in data and data['price'] != "":
-            product.price = data['price']
+        if 'name' not in data or data['name'] == "":
+            data['name'] = product.name
+        if 'category' not in data or data['category'] == "":
+            data['category'] = product.category
+        if 'description' not in data or data['description'] == "":
+            data['description'] = product.description
+        if 'price' not in data or data['price'] == "":
+            data['price'] = product.price
+
+        try:
+            product.deserialize(data)
+        except DataValidationError as error:
+            api.abort(status.HTTP_400_BAD_REQUEST, str(error))
         product.update()
         app.logger.info("Product with id [%s] updated.", product.id)
         return product.serialize(), status.HTTP_200_OK
