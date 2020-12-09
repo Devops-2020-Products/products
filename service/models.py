@@ -95,7 +95,7 @@ class Product(db.Model):
         """
         pattern = re.compile(r'^[+]?([0-9]+(\.[0-9]*)?|[+]?\.[0-9]+)$')
         try:
-            if data["price"] != "" and not isinstance(data["price"], float) and not pattern.match(data["price"]):
+            if (data["price"] != "" and not isinstance(data["price"], float) and not pattern.match(data["price"])) or data["price"] < 0:
                 raise DataValidationError("Invalid Price Input")
             self.name = data["name"]
             self.description = data["description"]
